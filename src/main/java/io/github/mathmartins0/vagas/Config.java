@@ -11,7 +11,7 @@ import java.util.List;
 public record Config(
         List<String> termosBusca,
         boolean linkedinAtivo,
-        String linkedinLocal,
+        String linkedinGeoId,
         int notaMinima,
         int diasMaximos,
         Perfil perfil,

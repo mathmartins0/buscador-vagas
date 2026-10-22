@@ -13,10 +13,12 @@ class GupyFonteTest {
     @Test
     void converteRespostaDaApi() throws Exception {
         String corpo = """
-                {"data":[{"id":123,"name":"Desenvolvedor Java Pleno","careerPageName":"Acme",
+                <html><body><script id="__NEXT_DATA__" type="application/json">
+                {"props":{"pageProps":{"initialJobList":{"data":[{"id":123,"name":"Desenvolvedor Java Pleno","careerPageName":"Acme",
                   "type":"vacancy_legal_entity","jobUrl":"https://acme.gupy.io/jobs/123",
                   "description":"<p>Spring Boot</p>","workplaceType":"remote","isRemoteWork":true,
-                  "city":"São Paulo","state":"SP","publishedDate":"2026-10-20T12:00:00.000Z"}]}
+                  "city":"São Paulo","state":"SP","publishedDate":"2026-10-20T12:00:00.000Z"}]}}}}
+                </script></body></html>
                 """;
 
         List<Vaga> vagas = new GupyFonte().converter(corpo);

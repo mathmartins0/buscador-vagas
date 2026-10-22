@@ -26,11 +26,13 @@ public class App {
         List<FonteVagas> fontes = new ArrayList<>();
         fontes.add(new GupyFonte());
         if (config.linkedinAtivo()) {
-            fontes.add(new LinkedInFonte(config.linkedinLocal()));
+            fontes.add(new LinkedInFonte(config.linkedinGeoId()));
         }
 
         Map<String, Vaga> encontradas = new LinkedHashMap<>();
+        Map<String, FonteVagas> fontePorNome = new LinkedHashMap<>();
         for (FonteVagas fonte : fontes) {
+            fontePorNome.put(fonte.nome(), fonte);
             for (String termo : config.termosBusca()) {
                 try {
                     List<Vaga> vagas = fonte.buscar(termo);
@@ -56,6 +58,12 @@ public class App {
         List<Relatorio.Item> itens = new ArrayList<>();
         for (Vaga vaga : encontradas.values()) {
             if (historico.jaVista(vaga) || (vaga.publicadaEm() != null && vaga.publicadaEm().isBefore(limite))) {
+                continue;
+            }
+            try {
+                vaga = fontePorNome.get(vaga.fonte()).detalhar(vaga);
+            } catch (Exception e) {
+                System.err.printf("Detalhes de %s falharam (%s)%n", vaga.url(), e.getMessage());
                 continue;
             }
             historico.marcar(vaga);

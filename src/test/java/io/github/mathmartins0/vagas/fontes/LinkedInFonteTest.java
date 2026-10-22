@@ -33,4 +33,21 @@ class LinkedInFonteTest {
         assertEquals("https://br.linkedin.com/jobs/view/dev-java-4012345678", v.url());
         assertEquals(LocalDate.of(2026, 10, 21), v.publicadaEm());
     }
+
+    @Test
+    void completaComDescricaoETipoDeEmprego() {
+        Vaga card = new Vaga("1", "LinkedIn", "Dev Java", "Acme", "São Paulo", "", "", "https://x", "", null);
+        String html = """
+                <div class="show-more-less-html__markup show-more-less-html__markup--clamp-after-5">
+                  Buscamos dev <strong>Java</strong> para atuar 100% remoto.</div>
+                <ul><li><span class="description__job-criteria-text">Pleno-sênior</span></li>
+                <li><span class="description__job-criteria-text">Contrato</span></li></ul>
+                """;
+
+        Vaga v = new LinkedInFonte("106057199").completar(card, html);
+
+        assertEquals("Buscamos dev Java para atuar 100% remoto.", v.descricao());
+        assertEquals("Pleno-sênior · Contrato", v.tipoContrato());
+        assertEquals("remoto", v.modalidade());
+    }
 }

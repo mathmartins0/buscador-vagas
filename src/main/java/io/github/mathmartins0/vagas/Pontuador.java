@@ -33,6 +33,7 @@ public class Pontuador {
         }
 
         boolean pj = contrato.contains("legal_entity")
+                || Texto.contem(contrato, "contrato", "contract", "freelance", "temporario")
                 || Texto.contem(tudo, "pj", "pessoa juridica", "contrato pj", "cnpj", "prestador de servico");
         boolean clt = contrato.contains("effective") || Texto.contem(tudo, "clt");
         if (pj) {

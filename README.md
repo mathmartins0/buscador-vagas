@@ -4,14 +4,14 @@ Bot em Java 21 que procura vagas de desenvolvedor Java, dá uma nota de aderênc
 
 ## Como funciona
 
-1. Busca os termos do `config.json` na **Gupy** (API pública do portal de vagas) e, se ativado, na **busca pública do LinkedIn** (a lista que aparece sem login; não usa sua conta).
+1. Busca os termos do `config.json` no **portal da Gupy** e, se ativado, na **busca pública do LinkedIn** (a página que aparece sem login; não usa sua conta). Das vagas novas do LinkedIn, abre a página de cada uma para ler a descrição e o tipo de emprego.
 2. Remove repetidas, vagas já mostradas em dias anteriores (`data/vistas.json`) e vagas mais antigas que `diasMaximos`.
 3. Dá uma nota de 0 a 100 para cada vaga:
 
 | Critério | Pontos |
 |---|---:|
 | Título de Java/backend | +20 |
-| Aceita PJ (tipo PJ na Gupy, ou "PJ", "CNPJ", "pessoa jurídica" no texto) | +30 |
+| Aceita PJ (tipo PJ na Gupy, "Contrato" no LinkedIn, ou "PJ", "CNPJ", "pessoa jurídica" no texto) | +30 |
 | Só CLT | −30 |
 | Pleno no título / nível não informado / sênior | +20 / +10 / +5 |
 | Remoto / híbrido | +15 / +5 |
@@ -39,6 +39,7 @@ Tudo fica no `config.json`:
 
 - `termosBusca`: o que pesquisar.
 - `linkedinAtivo`: `false` para usar só a Gupy.
+- `linkedinGeoId`: região da busca no LinkedIn (`106057199` = Brasil).
 - `notaMinima`: suba para receber menos vagas e mais certeiras.
 - `perfil.habilidades`: usadas na nota e na mensagem.
 - `modeloMensagem`: o texto da mensagem. Aceita `{empresa}`, `{titulo}`, `{habilidades}`, `{nome}`, `{email}`, `{telefone}`, `{linkedin}` e `{github}`.

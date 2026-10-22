@@ -3,6 +3,8 @@ package io.github.mathmartins0.vagas.fontes;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mathmartins0.vagas.Vaga;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -12,10 +14,13 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Vagas da Gupy, pela mesma API pública que o portal de vagas deles usa. */
+/**
+ * Vagas do portal da Gupy (portal.gupy.io). A página de busca já vem com a lista de vagas
+ * embutida em JSON (__NEXT_DATA__), então lemos direto de lá.
+ */
 public class GupyFonte implements FonteVagas {
 
-    private static final String URL = "https://portal.api.gupy.io/api/job?limit=100&offset=0&name=";
+    private static final String URL = "https://portal.gupy.io/job-search/term=";
 
     private final ObjectMapper json = new ObjectMapper();
 
@@ -29,9 +34,14 @@ public class GupyFonte implements FonteVagas {
         return converter(Http.get(URL + URLEncoder.encode(termo, StandardCharsets.UTF_8)));
     }
 
-    List<Vaga> converter(String corpo) throws IOException {
+    List<Vaga> converter(String html) throws IOException {
+        Element script = Jsoup.parse(html).getElementById("__NEXT_DATA__");
+        if (script == null) {
+            throw new IOException("página da Gupy sem __NEXT_DATA__ (o site pode ter mudado)");
+        }
+        JsonNode lista = json.readTree(script.data()).path("props").path("pageProps").path("initialJobList").path("data");
         List<Vaga> vagas = new ArrayList<>();
-        for (JsonNode item : json.readTree(corpo).path("data")) {
+        for (JsonNode item : lista) {
             vagas.add(new Vaga(
                     item.path("id").asText(),
                     nome(),

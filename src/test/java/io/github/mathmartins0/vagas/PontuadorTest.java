@@ -34,6 +34,13 @@ class PontuadorTest {
     }
 
     @Test
+    void tipoContratoDoLinkedInContaComoPj() {
+        Avaliacao a = pontuador.avaliar(vaga("Desenvolvedor Java", "Spring Boot", "Pleno-sênior · Contrato", ""));
+
+        assertTrue(a.motivos().contains("+30 aceita PJ"));
+    }
+
+    @Test
     void soCltPerdePontos() {
         Avaliacao a = pontuador.avaliar(vaga("Desenvolvedor Java", "Regime CLT, benefícios.", "", ""));
 

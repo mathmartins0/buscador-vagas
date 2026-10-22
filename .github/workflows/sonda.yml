@@ -6,9 +6,17 @@ jobs:
     steps:
       - run: |
           UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
-          for u in "https://portal.api.gupy.io/api/v1/jobs?jobName=java&offset=0&limit=3" "https://portal.api.gupy.io/api/job?name=java&offset=0&limit=3" "https://employability-portal.gupy.io/api/v1/jobs?jobName=java&limit=3"; do
-            echo "=== $u"; curl -sS -m 20 -A "$UA" -w "\nHTTP %{http_code}\n" "$u" | head -c 2500; echo
-          done
-          echo "=== LI search"; curl -sS -m 20 -A "$UA" "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=java%20pj&geoId=106057199&f_TPR=r604800&start=0" > li.html; grep -o 'job-search-card__location">[^<]*' li.html | head -5; grep -o 'jobPosting:[0-9]*' li.html | head -3
-          ID=$(grep -o 'jobPosting:[0-9]*' li.html | head -1 | cut -d: -f2)
-          echo "=== LI detail $ID"; curl -sS -m 20 -A "$UA" -w "\nHTTP %{http_code}\n" "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/$ID" > det.html; tail -1 det.html; grep -o 'class="show-more-less-html__markup[^"]*"' det.html | head -2; grep -o 'description__job-criteria-text[^<]*<' det.html | head; sed -n '/show-more-less-html__markup/,+6p' det.html | head -c 800
+          curl -sS -m 20 -A "$UA" -w "\nHTTP %{http_code}\n" "https://portal.gupy.io/job-search/term=java" > p.html; tail -1 p.html; wc -c p.html
+          grep -o 'https://[a-z0-9.-]*gupy[a-z0-9.-]*/[a-zA-Z0-9/_?=&.-]*' p.html | sort -u | head -30
+          grep -o '"jobUrl":"[^"]*"' p.html | head -3
+          grep -o '__NEXT_DATA__' p.html | head -1
+          python3 - <<'PY'
+          import re
+          s=open('p.html').read()
+          m=re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', s, re.S)
+          if m:
+              print(m.group(1)[:3000])
+          for js in sorted(set(re.findall(r'src="(/_next/static/[^"]+\.js)"', s)))[:40]:
+              print("JS", js)
+          PY
+          for js in $(grep -o 'src="/_next/static/[^"]*\.js"' p.html | cut -d'"' -f2); do curl -sS -m 20 -A "$UA" "https://portal.gupy.io$js" | grep -o '[a-z\-]*\.gupy\.io/api[a-zA-Z0-9/_-]*\|/api/v[0-9]/[a-zA-Z0-9/_-]*\|jobName' | sort -u; done | sort -u | head -40

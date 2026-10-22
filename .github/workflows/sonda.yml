@@ -1,0 +1,14 @@
+name: sonda
+on: push
+jobs:
+  s:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+          for u in "https://portal.api.gupy.io/api/v1/jobs?jobName=java&offset=0&limit=3" "https://portal.api.gupy.io/api/job?name=java&offset=0&limit=3" "https://employability-portal.gupy.io/api/v1/jobs?jobName=java&limit=3"; do
+            echo "=== $u"; curl -sS -m 20 -A "$UA" -w "\nHTTP %{http_code}\n" "$u" | head -c 2500; echo
+          done
+          echo "=== LI search"; curl -sS -m 20 -A "$UA" "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=java%20pj&geoId=106057199&f_TPR=r604800&start=0" > li.html; grep -o 'job-search-card__location">[^<]*' li.html | head -5; grep -o 'jobPosting:[0-9]*' li.html | head -3
+          ID=$(grep -o 'jobPosting:[0-9]*' li.html | head -1 | cut -d: -f2)
+          echo "=== LI detail $ID"; curl -sS -m 20 -A "$UA" -w "\nHTTP %{http_code}\n" "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/$ID" > det.html; tail -1 det.html; grep -o 'class="show-more-less-html__markup[^"]*"' det.html | head -2; grep -o 'description__job-criteria-text[^<]*<' det.html | head; sed -n '/show-more-less-html__markup/,+6p' det.html | head -c 800

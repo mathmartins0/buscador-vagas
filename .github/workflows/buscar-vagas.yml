@@ -1,0 +1,47 @@
+name: Buscar vagas
+
+on:
+  schedule:
+    - cron: "0 11 * * 1-5" # 8h da manhã em Brasília, de segunda a sexta
+  workflow_dispatch: # botão "Run workflow" para rodar na hora
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Compilar e testar
+        run: mvn -B -q package
+
+      - name: Buscar vagas
+        run: java -jar target/buscador-vagas.jar config.json
+
+      - name: Salvar relatório no repositório
+        run: |
+          git config user.name "buscador-vagas"
+          git config user.email "actions@users.noreply.github.com"
+          git add relatorios data
+          git diff --cached --quiet || git commit -m "Vagas de $(TZ=America/Sao_Paulo date +%F)"
+          git push
+
+      - name: Abrir issue com as vagas do dia
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DIA=$(TZ=America/Sao_Paulo date +%F)
+          ARQUIVO="relatorios/$DIA.md"
+          if grep -q "Nenhuma vaga nova" "$ARQUIVO"; then exit 0; fi
+          # O GitHub aceita até 65 mil caracteres no corpo da issue
+          { head -c 60000 "$ARQUIVO"; echo; echo; echo "Relatório completo: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/$ARQUIVO"; } > corpo.md
+          gh issue create --title "Vagas de $DIA" --body-file corpo.md

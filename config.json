@@ -1,0 +1,26 @@
+{
+  "termosBusca": [
+    "desenvolvedor java",
+    "java pleno",
+    "java pj",
+    "backend java",
+    "spring boot"
+  ],
+  "linkedinAtivo": true,
+  "linkedinLocal": "Brasil",
+  "notaMinima": 40,
+  "diasMaximos": 14,
+  "perfil": {
+    "nome": "Matheus Martins Baptista",
+    "email": "martins.matheus90@gmail.com",
+    "telefone": "(12) 98142-7074",
+    "linkedin": "linkedin.com/in/matheus-martins-baptista-b4748b233",
+    "github": "github.com/mathmartins0",
+    "habilidades": [
+      "Spring Boot", "REST", "SOAP", "Microsserviços",
+      "SQL Server", "Oracle", "PostgreSQL", "Spring Security", "Spring Batch", "Spring Data",
+      "Docker", "Kubernetes", "Azure DevOps", "ArgoCD", "CI/CD", "Jenkins", "Angular"
+    ]
+  },
+  "modeloMensagem": "Olá, pessoal da {empresa}! Tudo bem?\n\nVi a vaga de {titulo} e me interessei bastante. Sou desenvolvedor backend Java com 6 anos de experiência em sistemas corporativos (ERP, educacional, fiscal e seguros), trabalhando no dia a dia com {habilidades}. Também cuido de deploys com Docker e Kubernetes e já conduzo refinamentos com a squad.\n\nTenho disponibilidade para atuar como PJ. Se fizer sentido, adoraria conversar.\n\nAbraço,\n{nome}\n{telefone} · {email}\n{linkedin}"
+}

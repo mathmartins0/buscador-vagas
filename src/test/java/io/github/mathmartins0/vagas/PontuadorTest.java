@@ -93,6 +93,7 @@ class PontuadorTest {
         assertFalse(soRemoto.avaliar(vaga("Dev Java Pleno", "", "", "remoto")).descartada());
         assertFalse(soRemoto.avaliar(vaga("[Remoto] Dev Java Pleno", "", "", "")).descartada());
         assertFalse(soRemoto.avaliar(vaga("Dev Java Pleno", "Atuação 100% remoto", "", "")).descartada());
+        assertTrue(soRemoto.avaliar(vaga("Backend Java PLENO-SENIOR (Híbrido em SP)", "", "", "remoto")).descartada());
     }
 
     @Test

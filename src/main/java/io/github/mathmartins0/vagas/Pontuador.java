@@ -33,9 +33,11 @@ public class Pontuador {
             return descartar("vaga sênior ou acima");
         }
         String modalidade = Texto.normalizar(vaga.modalidade());
-        boolean remoto = modalidade.equals("remoto")
+        // O título manda: há vagas marcadas como remotas no LinkedIn com "(Híbrido)" no nome
+        boolean remoto = !Texto.contem(titulo, "hibrido", "hybrid", "presencial", "on-site", "onsite")
+                && (modalidade.equals("remoto")
                 || Texto.contem(titulo, "remoto", "remote", "home office")
-                || Texto.contem(tudo, "100% remoto", "totalmente remoto", "100% remote", "fully remote");
+                || Texto.contem(tudo, "100% remoto", "totalmente remoto", "100% remote", "fully remote"));
         if (apenasRemoto && !remoto) {
             return descartar("não é remota");
         }

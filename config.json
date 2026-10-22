@@ -2,10 +2,12 @@
   "termosBusca": [
     "desenvolvedor java",
     "java pleno",
+    "java junior",
     "java pj",
     "backend java",
     "spring boot"
   ],
+  "apenasRemoto": true,
   "linkedinAtivo": true,
   "linkedinGeoId": "106057199",
   "notaMinima": 40,

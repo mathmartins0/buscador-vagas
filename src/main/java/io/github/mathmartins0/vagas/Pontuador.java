@@ -7,9 +7,11 @@ import java.util.List;
 public class Pontuador {
 
     private final List<String> habilidades;
+    private final boolean apenasRemoto;
 
-    public Pontuador(List<String> habilidades) {
+    public Pontuador(List<String> habilidades, boolean apenasRemoto) {
         this.habilidades = habilidades;
+        this.apenasRemoto = apenasRemoto;
     }
 
     public Avaliacao avaliar(Vaga vaga) {
@@ -21,8 +23,21 @@ public class Pontuador {
         if (!Texto.contem(tudo, "java", "spring", "spring boot")) {
             return descartar("não menciona Java nem Spring");
         }
-        if (Texto.contem(titulo, "estagio", "estagiario", "trainee", "junior", "jr", "aprendiz")) {
-            return descartar("vaga de nível júnior ou estágio");
+        if (Texto.contem(titulo, "estagio", "estagiario", "trainee", "aprendiz")) {
+            return descartar("vaga de estágio ou trainee");
+        }
+        boolean pleno = Texto.contem(titulo, "pleno", "pl", "mid", "mid-level");
+        boolean junior = Texto.contem(titulo, "junior", "jr");
+        if (!pleno && !junior && Texto.contem(titulo, "senior", "sr", "especialista", "specialist", "spec",
+                "expert", "lead", "lider", "staff", "principal", "arquiteto", "architect")) {
+            return descartar("vaga sênior ou acima");
+        }
+        String modalidade = Texto.normalizar(vaga.modalidade());
+        boolean remoto = modalidade.equals("remoto")
+                || Texto.contem(titulo, "remoto", "remote", "home office")
+                || Texto.contem(tudo, "100% remoto", "totalmente remoto", "100% remote", "fully remote");
+        if (apenasRemoto && !remoto) {
+            return descartar("não é remota");
         }
 
         int nota = 0;
@@ -46,19 +61,18 @@ public class Pontuador {
             motivos.add("+0 tipo de contrato não informado");
         }
 
-        if (Texto.contem(titulo, "pleno", "pl", "mid", "mid-level")) {
+        if (pleno) {
             nota += 20;
             motivos.add("+20 vaga de pleno");
-        } else if (Texto.contem(titulo, "senior", "sr", "especialista", "lead", "lider")) {
-            nota += 5;
-            motivos.add("+5 vaga sênior (seu histórico cobre)");
+        } else if (junior) {
+            nota += 15;
+            motivos.add("+15 vaga de júnior");
         } else {
             nota += 10;
             motivos.add("+10 nível não informado");
         }
 
-        String modalidade = Texto.normalizar(vaga.modalidade());
-        if (modalidade.equals("remoto") || Texto.contem(tudo, "100% remoto", "home office", "remote")) {
+        if (remoto) {
             nota += 15;
             motivos.add("+15 remoto");
         } else if (modalidade.equals("hibrido") || Texto.contem(tudo, "hibrido")) {

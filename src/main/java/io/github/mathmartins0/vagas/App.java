@@ -26,7 +26,7 @@ public class App {
         List<FonteVagas> fontes = new ArrayList<>();
         fontes.add(new GupyFonte());
         if (config.linkedinAtivo()) {
-            fontes.add(new LinkedInFonte(config.linkedinGeoId()));
+            fontes.add(new LinkedInFonte(config.linkedinGeoId(), config.apenasRemoto()));
         }
 
         Map<String, Vaga> encontradas = new LinkedHashMap<>();
@@ -51,7 +51,7 @@ public class App {
         }
 
         Historico historico = new Historico(Path.of("data/vistas.json"));
-        Pontuador pontuador = new Pontuador(config.perfil().habilidades());
+        Pontuador pontuador = new Pontuador(config.perfil().habilidades(), config.apenasRemoto());
         GeradorMensagem gerador = new GeradorMensagem(config.perfil(), config.modeloMensagem());
         LocalDate limite = hoje.minusDays(config.diasMaximos());
 

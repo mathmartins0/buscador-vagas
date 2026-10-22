@@ -10,6 +10,7 @@ import java.util.List;
 /** Configuração lida de config.json. */
 public record Config(
         List<String> termosBusca,
+        boolean apenasRemoto,
         boolean linkedinAtivo,
         String linkedinGeoId,
         int notaMinima,

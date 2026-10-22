@@ -13,10 +13,11 @@ Bot em Java 21 que procura vagas de desenvolvedor Java, dá uma nota de aderênc
 | Título de Java/backend | +20 |
 | Aceita PJ (tipo PJ na Gupy, "Contrato" no LinkedIn, ou "PJ", "CNPJ", "pessoa jurídica" no texto) | +30 |
 | Só CLT | −30 |
-| Pleno no título / nível não informado / sênior | +20 / +10 / +5 |
+| Pleno / júnior / nível não informado no título | +20 / +15 / +10 |
 | Remoto / híbrido | +15 / +5 |
 | Cada habilidade do seu perfil citada na vaga | +3 (até +15) |
-| Sem Java/Spring, júnior, estágio ou trainee | descartada |
+| Sem Java/Spring, estágio, trainee, sênior ou acima (especialista, lead, staff...) | descartada |
+| Não remota, com `apenasRemoto: true` | descartada |
 
 4. Gera `relatorios/AAAA-MM-DD.md` com as vagas acima de `notaMinima`, da melhor para a pior, cada uma com os motivos da nota e a mensagem pronta.
 
@@ -38,6 +39,7 @@ O workflow `.github/workflows/buscar-vagas.yml` roda de segunda a sexta às 8h (
 Tudo fica no `config.json`:
 
 - `termosBusca`: o que pesquisar.
+- `apenasRemoto`: `true` para receber só vagas remotas.
 - `linkedinAtivo`: `false` para usar só a Gupy.
 - `linkedinGeoId`: região da busca no LinkedIn (`106057199` = Brasil).
 - `notaMinima`: suba para receber menos vagas e mais certeiras.

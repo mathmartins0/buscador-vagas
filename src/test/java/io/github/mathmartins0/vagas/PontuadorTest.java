@@ -10,7 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PontuadorTest {
 
-    private final Pontuador pontuador = new Pontuador(List.of("Spring Boot", "SQL Server", "Docker", "Kubernetes"));
+    private final Pontuador pontuador = new Pontuador(List.of("Spring Boot", "SQL Server", "Docker", "Kubernetes"), false);
+    private final Pontuador soRemoto = new Pontuador(List.of(), true);
 
     private static Vaga vaga(String titulo, String descricao, String contrato, String modalidade) {
         return new Vaga("1", "Teste", titulo, "Empresa", "São Paulo", modalidade, contrato, "https://x", descricao, null);
@@ -60,9 +61,38 @@ class PontuadorTest {
     }
 
     @Test
-    void descartaJuniorEEstagio() {
-        assertTrue(pontuador.avaliar(vaga("Desenvolvedor Java Júnior", "Spring", "", "")).descartada());
+    void descartaEstagio() {
         assertTrue(pontuador.avaliar(vaga("Estágio em Desenvolvimento Java", "", "", "")).descartada());
+    }
+
+    @Test
+    void aceitaJunior() {
+        Avaliacao a = pontuador.avaliar(vaga("Desenvolvedor Java Júnior", "Spring", "", ""));
+
+        assertFalse(a.descartada());
+        assertTrue(a.motivos().contains("+15 vaga de júnior"));
+    }
+
+    @Test
+    void descartaSeniorEAcima() {
+        assertTrue(pontuador.avaliar(vaga("Desenvolvedor Java Sênior", "", "", "")).descartada());
+        assertTrue(pontuador.avaliar(vaga("Engenheiro(a) de Software SR. Java", "", "", "")).descartada());
+        assertTrue(pontuador.avaliar(vaga("Java Developer - Expert-Level", "", "", "")).descartada());
+        assertTrue(pontuador.avaliar(vaga("Tech Lead Java", "", "", "")).descartada());
+    }
+
+    @Test
+    void plenoSeniorContaComoPleno() {
+        assertFalse(pontuador.avaliar(vaga("Pessoa Desenvolvedora Java Pleno/Sênior", "", "", "")).descartada());
+    }
+
+    @Test
+    void apenasRemotoDescartaHibridoEPresencial() {
+        assertTrue(soRemoto.avaliar(vaga("Dev Java Pleno", "2 dias de home office", "", "hibrido")).descartada());
+        assertTrue(soRemoto.avaliar(vaga("Dev Java Pleno", "", "", "")).descartada());
+        assertFalse(soRemoto.avaliar(vaga("Dev Java Pleno", "", "", "remoto")).descartada());
+        assertFalse(soRemoto.avaliar(vaga("[Remoto] Dev Java Pleno", "", "", "")).descartada());
+        assertFalse(soRemoto.avaliar(vaga("Dev Java Pleno", "Atuação 100% remoto", "", "")).descartada());
     }
 
     @Test

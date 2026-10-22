@@ -22,7 +22,7 @@ class LinkedInFonteTest {
                 </div></li>
                 """;
 
-        List<Vaga> vagas = new LinkedInFonte("Brasil").converter(html);
+        List<Vaga> vagas = new LinkedInFonte("106057199", false).converter(html);
 
         assertEquals(1, vagas.size());
         Vaga v = vagas.getFirst();
@@ -44,7 +44,7 @@ class LinkedInFonteTest {
                 <li><span class="description__job-criteria-text">Contrato</span></li></ul>
                 """;
 
-        Vaga v = new LinkedInFonte("106057199").completar(card, html);
+        Vaga v = new LinkedInFonte("106057199", false).completar(card, html);
 
         assertEquals("Buscamos dev Java para atuar 100% remoto.", v.descricao());
         assertEquals("Pleno-sênior · Contrato", v.tipoContrato());

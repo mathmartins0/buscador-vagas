@@ -26,10 +26,15 @@ public class LinkedInFonte implements FonteVagas {
     private static final int POR_PAGINA = 10;
 
     private final String geoId;
+    private final boolean apenasRemoto;
 
-    /** @param geoId código de região do LinkedIn (106057199 = Brasil) */
-    public LinkedInFonte(String geoId) {
+    /**
+     * @param geoId        código de região do LinkedIn (106057199 = Brasil)
+     * @param apenasRemoto usa o filtro "Remoto" da própria busca do LinkedIn
+     */
+    public LinkedInFonte(String geoId, boolean apenasRemoto) {
         this.geoId = geoId;
+        this.apenasRemoto = apenasRemoto;
     }
 
     @Override
@@ -41,7 +46,8 @@ public class LinkedInFonte implements FonteVagas {
     public List<Vaga> buscar(String termo) throws IOException, InterruptedException {
         List<Vaga> vagas = new ArrayList<>();
         for (int pagina = 0; pagina < PAGINAS; pagina++) {
-            String url = BUSCA.formatted(geoId, URLEncoder.encode(termo, StandardCharsets.UTF_8), pagina * POR_PAGINA);
+            String url = BUSCA.formatted(geoId, URLEncoder.encode(termo, StandardCharsets.UTF_8), pagina * POR_PAGINA)
+                    + (apenasRemoto ? "&f_WT=2" : "");
             List<Vaga> encontradas = converter(Http.get(url));
             vagas.addAll(encontradas);
             if (encontradas.size() < POR_PAGINA) {
@@ -72,7 +78,7 @@ public class LinkedInFonte implements FonteVagas {
                     titulo,
                     card.select(".base-search-card__subtitle").text(),
                     lugar,
-                    modalidade(lugar),
+                    apenasRemoto ? "remoto" : modalidade(lugar),
                     "",
                     link.replaceAll("\\?.*$", ""),
                     "",

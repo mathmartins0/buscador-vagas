@@ -1,41 +1,6 @@
-backendbr_labels.json HTTP 200 19625B https://api.github.com/repos/backend-br/vagas/labels?per_page=100
-backendbr_issues.json HTTP 200 120943B https://api.github.com/repos/backend-br/vagas/issues?state=open&per_page=30&labels=PJ
-programathor.html HTTP 403 5532B https://programathor.com.br/jobs-java
-remotar.html HTTP 200 44347B https://remotar.com.br/search/jobs?q=java
-remotar_api.json HTTP 200 567703B https://api.remotar.com.br/jobs?search=java
-coodesh.html HTTP 200 101004B https://coodesh.com/jobs?search=java
-trampos.json HTTP 200 8648B https://trampos.co/api/v2/opportunities?tr=java
-vagascom.html HTTP 200 40329B https://www.vagas.com.br/vagas-de-java-pj
-solides.json HTTP 400 34B https://apigw.solides.com.br/jobs/v3/home/vacancy?title=java&page=1&take=20
-solides.html HTTP 200 163040B https://vagas.solides.com.br/vagas/todos/java
-indeed.html HTTP 403 27711B https://br.indeed.com/jobs?q=java+pj&l=remoto
-infojobs.html HTTP 200 171492B https://www.infojobs.com.br/empregos.aspx?palabra=java+pj
-catho.html HTTP 200 294846B https://www.catho.com.br/vagas/java-pj/
-geekhunter.html HTTP 200 404756B https://www.geekhunter.com/pt/vagas
-careerjet.html HTTP 200 10953B https://www.careerjet.com.br/vagas?s=java+pj&l=Brasil
-remotive.json HTTP 200 114847B https://remotive.com/api/remote-jobs?search=java&limit=5
-himalayas.json HTTP 200 31146B https://himalayas.app/jobs/api?limit=5&q=java
-glassdoor.html HTTP 403 9B https://www.glassdoor.com.br/Vaga/brasil-java-pj-vagas-SRCH_IL.0,6_IN36_KO7,14.htm
-jobbol.html HTTP 403 5661B https://www.jobbol.com.br/vagas?q=java
-curl: (7) Failed to connect to hipsters.jobs port 443 after 441 ms: Couldn't connect to server
-hipsters.html HTTP 000 0B https://hipsters.jobs/jobs/?q=java
-hipsters.html ERRO
-backendbr_issues.json: next=0 nuxt=0 ldjson=0 java=16 pj=40 cf=1
-backendbr_labels.json: next=0 nuxt=0 ldjson=0 java=4 pj=2 cf=0
-careerjet.html: next=0 nuxt=0 ldjson=0 java=0 pj=0 cf=7
-catho.html: next=0 nuxt=0 ldjson=0 java=35 pj=21 cf=0
-coodesh.html: next=0 nuxt=0 ldjson=1 java=4 pj=0 cf=2
-geekhunter.html: next=0 nuxt=0 ldjson=2 java=6 pj=8 cf=0
-glassdoor.html: next=0 nuxt=0 ldjson=0 java=0 pj=0 cf=0
-himalayas.json: next=0 nuxt=0 ldjson=0 java=0 pj=0 cf=0
-indeed.html: next=0 nuxt=0 ldjson=0 java=5 pj=3 cf=5
-infojobs.html: next=0 nuxt=0 ldjson=0 java=211 pj=122 cf=0
-jobbol.html: next=0 nuxt=0 ldjson=0 java=4 pj=0 cf=1
-programathor.html: next=0 nuxt=0 ldjson=0 java=4 pj=0 cf=1
-remotar.html: next=1 nuxt=0 ldjson=0 java=0 pj=0 cf=0
-remotar_api.json: next=0 nuxt=0 ldjson=0 java=150 pj=11 cf=1
-remotive.json: next=0 nuxt=0 ldjson=0 java=16 pj=0 cf=1
-solides.html: next=0 nuxt=0 ldjson=0 java=3 pj=9 cf=0
-solides.json: next=0 nuxt=0 ldjson=0 java=0 pj=0 cf=0
-trampos.json: next=0 nuxt=0 ldjson=0 java=0 pj=0 cf=0
-vagascom.html: next=0 nuxt=0 ldjson=1 java=29 pj=26 cf=1
+vagascom_detalhe.html HTTP 200 42221B https://www.vagas.com.br/vagas/v2839391/11385-desenvolvedor-java
+vagascom_home.html HTTP 200 44798B https://www.vagas.com.br/vagas-de-java?m%5B%5D=100%25+Home+Office
+infojobs_pj_home.html HTTP 200 173452B https://www.infojobs.com.br/vagas-de-emprego-java-trabalho-home-office.aspx?tipocontrato=17
+infojobs_detalhe.html HTTP 200 106126B https://www.infojobs.com.br/vaga-de-desenvolvedor-software-geo-em-parana__12135182.aspx
+remotar_p2.json HTTP 200 602703B https://api.remotar.com.br/jobs?search=java&page=2
+backendbr_java.json HTTP 200 226509B https://api.github.com/repos/backend-br/vagas/issues?state=open&per_page=100&labels=Java

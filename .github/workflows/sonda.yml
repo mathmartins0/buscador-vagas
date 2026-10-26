@@ -8,33 +8,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: sondar
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p sonda; cd sonda
+          rm -rf sonda; mkdir -p sonda; cd sonda
           UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
           baixar() { curl -sS -L -m 25 -A "$UA" -H "Accept-Language: pt-BR,pt;q=0.9" -o "$1" -w "$1 HTTP %{http_code} %{size_download}B %{url_effective}\n" "$2" >> status.txt 2>>status.txt || echo "$1 ERRO" >> status.txt; }
-          baixar backendbr_labels.json "https://api.github.com/repos/backend-br/vagas/labels?per_page=100"
-          baixar backendbr_issues.json "https://api.github.com/repos/backend-br/vagas/issues?state=open&per_page=30&labels=PJ"
-          baixar programathor.html "https://programathor.com.br/jobs-java"
-          baixar remotar.html "https://remotar.com.br/search/jobs?q=java"
-          baixar remotar_api.json "https://api.remotar.com.br/jobs?search=java"
-          baixar coodesh.html "https://coodesh.com/vagas?search=java"
-          baixar trampos.json "https://trampos.co/api/v2/opportunities?tr=java"
-          baixar vagascom.html "https://www.vagas.com.br/vagas-de-java-pj"
-          baixar solides.json "https://apigw.solides.com.br/jobs/v3/home/vacancy?title=java&page=1&take=20"
-          baixar solides.html "https://vagas.solides.com.br/vagas/todos/java"
-          baixar indeed.html "https://br.indeed.com/jobs?q=java+pj&l=remoto"
-          baixar infojobs.html "https://www.infojobs.com.br/empregos.aspx?palabra=java+pj"
-          baixar catho.html "https://www.catho.com.br/vagas/java-pj/"
-          baixar geekhunter.html "https://www.geekhunter.com.br/vagas?search=java"
-          baixar careerjet.html "https://www.careerjet.com.br/vagas?s=java+pj&l=Brasil"
-          baixar remotive.json "https://remotive.com/api/remote-jobs?search=java&limit=5"
-          baixar himalayas.json "https://himalayas.app/jobs/api?limit=5&q=java"
-          baixar glassdoor.html "https://www.glassdoor.com.br/Vaga/brasil-java-pj-vagas-SRCH_IL.0,6_IN36_KO7,14.htm"
-          baixar jobbol.html "https://www.jobbol.com.br/vagas?q=java"
-          baixar hipsters.html "https://hipsters.jobs/jobs/?q=java"
-          for f in *; do [ "$f" = status.txt ] && continue; echo "$f: next=$(grep -c __NEXT_DATA__ $f) nuxt=$(grep -c __NUXT__ $f) ldjson=$(grep -c 'application/ld+json' $f) java=$(grep -oi java $f | wc -l) pj=$(grep -oiw pj $f | wc -l) cf=$(grep -ci 'cloudflare\|captcha\|challenge' $f)" >> status.txt; done
+          baixar vagascom_detalhe.html "https://www.vagas.com.br/vagas/v2839391/11385-desenvolvedor-java"
+          baixar vagascom_home.html "https://www.vagas.com.br/vagas-de-java?m%5B%5D=100%25+Home+Office"
+          baixar infojobs_pj_home.html "https://www.infojobs.com.br/vagas-de-emprego-java-trabalho-home-office.aspx?tipocontrato=17"
+          baixar infojobs_detalhe.html "https://www.infojobs.com.br/vaga-de-desenvolvedor-software-geo-em-parana__12135182.aspx"
+          baixar remotar_p2.json "https://api.remotar.com.br/jobs?search=java&page=2"
+          baixar backendbr_java.json "https://api.github.com/repos/backend-br/vagas/issues?state=open&per_page=100&labels=Java"
       - run: |
           git config user.name sonda; git config user.email sonda@users.noreply.github.com
-          git add -f sonda; git commit -qm "resultado sonda"; git push
+          git add -f sonda; git commit -qm "resultado sonda 2"; git push

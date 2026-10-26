@@ -2,12 +2,19 @@ name: Buscar vagas
 
 on:
   schedule:
-    - cron: "0 11 * * 1-5" # 8h da manhã em Brasília, de segunda a sexta
+    # O GitHub atrasa ou pula horários "redondos" quando está sobrecarregado.
+    # Por isso há três horários fora da hora cheia; se o relatório do dia já existe, os outros não fazem nada.
+    - cron: "17 10 * * 1-5" # 7h17 em Brasília
+    - cron: "43 13 * * 1-5" # 10h43
+    - cron: "29 17 * * 1-5" # 14h29
   workflow_dispatch: # botão "Run workflow" para rodar na hora
 
 permissions:
   contents: write
   issues: write
+
+concurrency:
+  group: buscar-vagas
 
 jobs:
   buscar:
@@ -15,33 +22,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Ver se já rodou hoje
+        id: hoje
+        run: |
+          DIA=$(TZ=America/Sao_Paulo date +%F)
+          echo "dia=$DIA" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "schedule" ] && [ -f "relatorios/$DIA.md" ]; then
+            echo "Relatório de $DIA já existe."
+            echo "pular=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-java@v4
+        if: steps.hoje.outputs.pular != 'true'
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
 
       - name: Compilar e testar
+        if: steps.hoje.outputs.pular != 'true'
         run: mvn -B -q package
 
       - name: Buscar vagas
+        if: steps.hoje.outputs.pular != 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: java -jar target/buscador-vagas.jar config.json
 
       - name: Salvar relatório no repositório
+        if: steps.hoje.outputs.pular != 'true'
         run: |
           git config user.name "buscador-vagas"
           git config user.email "actions@users.noreply.github.com"
           git add relatorios data
-          git diff --cached --quiet || git commit -m "Vagas de $(TZ=America/Sao_Paulo date +%F)"
+          git diff --cached --quiet || git commit -m "Vagas de ${{ steps.hoje.outputs.dia }}"
           git push
 
       - name: Abrir issue com as vagas do dia
+        if: steps.hoje.outputs.pular != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          DIA=$(TZ=America/Sao_Paulo date +%F)
-          ARQUIVO="relatorios/$DIA.md"
+          ARQUIVO="relatorios/${{ steps.hoje.outputs.dia }}.md"
           if grep -q "Nenhuma vaga nova" "$ARQUIVO"; then exit 0; fi
           # O GitHub aceita até 65 mil caracteres no corpo da issue
           { head -c 60000 "$ARQUIVO"; echo; echo; echo "Relatório completo: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/$ARQUIVO"; } > corpo.md
-          gh issue create --title "Vagas de $DIA" --body-file corpo.md
+          gh issue create --title "Vagas de ${{ steps.hoje.outputs.dia }}" --body-file corpo.md

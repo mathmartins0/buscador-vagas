@@ -1,14 +1,14 @@
 {
   "termosBusca": [
-    "desenvolvedor java",
+    "java",
     "java pleno",
     "java junior",
     "java pj",
-    "backend java",
     "spring boot"
   ],
   "apenasRemoto": true,
-  "linkedinAtivo": true,
+  "apenasPj": true,
+  "fontesDesligadas": [],
   "linkedinGeoId": "106057199",
   "notaMinima": 40,
   "diasMaximos": 14,

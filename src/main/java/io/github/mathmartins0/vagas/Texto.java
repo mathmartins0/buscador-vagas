@@ -22,6 +22,12 @@ public final class Texto {
         return semAcento.toLowerCase(Locale.ROOT);
     }
 
+    /** Quantas vezes o termo aparece como palavra inteira no texto já normalizado. */
+    public static int contar(String textoNormalizado, String termo) {
+        String t = Pattern.quote(normalizar(termo));
+        return (int) Pattern.compile("(?<![a-z0-9])" + t + "(?![a-z0-9])").matcher(textoNormalizado).results().count();
+    }
+
     /** true se algum termo aparece como palavra inteira no texto já normalizado. */
     public static boolean contem(String textoNormalizado, String... termos) {
         for (String termo : termos) {

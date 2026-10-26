@@ -10,16 +10,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PontuadorTest {
 
-    private final Pontuador pontuador = new Pontuador(List.of("Spring Boot", "SQL Server", "Docker", "Kubernetes"), false);
-    private final Pontuador soRemoto = new Pontuador(List.of(), true);
+    private final Pontuador rigido = new Pontuador(List.of("Spring Boot", "SQL Server", "Docker", "Kubernetes"), true, true);
+    private final Pontuador flexivel = new Pontuador(List.of(), false, false);
 
     private static Vaga vaga(String titulo, String descricao, String contrato, String modalidade) {
-        return new Vaga("1", "Teste", titulo, "Empresa", "São Paulo", modalidade, contrato, "https://x", descricao, null);
+        return new Vaga("1", "Teste", titulo, "Empresa", "", modalidade, contrato, "https://x", descricao, null);
+    }
+
+    private static String motivo(Avaliacao a) {
+        return a.motivos().getFirst();
     }
 
     @Test
     void vagaIdealGanhaNotaAlta() {
-        Avaliacao a = pontuador.avaliar(vaga("Desenvolvedor Java Pleno",
+        Avaliacao a = rigido.avaliar(vaga("Desenvolvedor Java Pleno",
                 "Contratação PJ. Stack: Spring Boot, SQL Server, Docker e Kubernetes.", "", "remoto"));
 
         assertFalse(a.descartada());
@@ -28,77 +32,83 @@ class PontuadorTest {
     }
 
     @Test
-    void tipoPessoaJuridicaDaGupyContaComoPj() {
-        Avaliacao a = pontuador.avaliar(vaga("Backend Developer", "Java 17", "vacancy_legal_entity", ""));
+    void semPjExplicitoEhDescartada() {
+        Avaliacao a = rigido.avaliar(vaga("Desenvolvedor Java Pleno", "Spring Boot", "", "remoto"));
 
-        assertTrue(a.motivos().contains("+30 aceita PJ"));
+        assertTrue(a.descartada());
+        assertEquals("não diz que aceita PJ", motivo(a));
     }
 
     @Test
-    void tipoContratoDoLinkedInContaComoPj() {
-        Avaliacao a = pontuador.avaliar(vaga("Desenvolvedor Java", "Spring Boot", "Pleno-sênior · Contrato", ""));
-
-        assertTrue(a.motivos().contains("+30 aceita PJ"));
+    void contratoGenericoDoLinkedInNaoContaComoPj() {
+        assertTrue(rigido.avaliar(vaga("Desenvolvedor Java Pleno", "Spring", "Pleno-sênior · Contrato", "remoto")).descartada());
     }
 
     @Test
-    void soCltPerdePontos() {
-        Avaliacao a = pontuador.avaliar(vaga("Desenvolvedor Java", "Regime CLT, benefícios.", "", ""));
-
-        assertTrue(a.motivos().contains("-30 parece ser só CLT"));
+    void reconheceSinaisDePj() {
+        assertFalse(rigido.avaliar(vaga("Dev Java Pleno", "", "vacancy_legal_entity", "remoto")).descartada());
+        assertFalse(rigido.avaliar(vaga("Dev Java Pleno", "", "PJ, Pleno, Remoto", "remoto")).descartada());
+        assertFalse(rigido.avaliar(vaga("Dev Java Pleno", "", "Pleno · Pessoa Jurídica", "remoto")).descartada());
+        assertFalse(rigido.avaliar(vaga("Dev Java Pleno", "Contratação CLT ou PJ", "", "remoto")).descartada());
+        assertFalse(rigido.avaliar(vaga("Dev Java Pleno", "Prestador de serviços com CNPJ", "", "remoto")).descartada());
     }
 
     @Test
-    void cltOuPjContaComoPj() {
-        Avaliacao a = pontuador.avaliar(vaga("Desenvolvedor Java", "Contratação CLT ou PJ.", "", ""));
+    void qualquerMencaoAHibridoOuPresencialDerrubaAVaga() {
+        Avaliacao a = rigido.avaliar(vaga("Desenvolvedor Java Pleno",
+                "Fora de SP: 100% home office. Residentes em SP: presencial 1x por semana. Contratação: PJ",
+                "", "remoto"));
 
-        assertTrue(a.motivos().contains("+30 aceita PJ"));
+        assertTrue(a.descartada());
+        assertEquals("menciona híbrido ou presencial", motivo(a));
+        assertTrue(rigido.avaliar(vaga("Dev Java Pleno PJ", "Modelo híbrido", "", "remoto")).descartada());
+        assertTrue(rigido.avaliar(vaga("Dev Java Pleno PJ", "", "PJ, Remoto, Híbrido", "remoto")).descartada());
+    }
+
+    @Test
+    void semIndicacaoDeRemotoEhDescartada() {
+        assertEquals("não diz que é remota", motivo(rigido.avaliar(vaga("Dev Java Pleno PJ", "", "", ""))));
+        assertFalse(rigido.avaliar(vaga("[Remoto] Dev Java Pleno PJ", "", "", "")).descartada());
+        assertFalse(rigido.avaliar(vaga("Dev Java Pleno PJ", "Atuação 100% remoto", "", "")).descartada());
+    }
+
+    @Test
+    void descartaSeniorEAcimaMasAceitaPlenoSenior() {
+        assertTrue(rigido.avaliar(vaga("Desenvolvedor Java Sênior PJ", "", "", "remoto")).descartada());
+        assertTrue(rigido.avaliar(vaga("Engenheiro(a) de Software SR. Java PJ", "", "", "remoto")).descartada());
+        assertTrue(rigido.avaliar(vaga("Java Developer - Expert-Level PJ", "", "", "remoto")).descartada());
+        assertTrue(rigido.avaliar(vaga("Desenvolvedor Java PJ", "", "PJ, Sênior", "remoto")).descartada());
+        assertFalse(rigido.avaliar(vaga("Desenvolvedor Java PJ", "", "PJ, Pleno, Sênior", "remoto")).descartada());
+        assertFalse(rigido.avaliar(vaga("Pessoa Desenvolvedora Java Pleno/Sênior PJ", "", "", "remoto")).descartada());
+    }
+
+    @Test
+    void aceitaJuniorEDescartaEstagio() {
+        Avaliacao a = rigido.avaliar(vaga("Desenvolvedor Java Júnior PJ", "Spring", "", "remoto"));
+
+        assertFalse(a.descartada());
+        assertTrue(a.motivos().contains("+15 vaga de júnior"));
+        assertTrue(rigido.avaliar(vaga("Estágio em Desenvolvimento Java", "PJ", "", "remoto")).descartada());
+    }
+
+    @Test
+    void descartaVagaInternacional() {
+        assertTrue(rigido.avaliar(vaga("Java Developer Pleno", "", "PJ, Vaga internacional", "remoto")).descartada());
     }
 
     @Test
     void descartaVagaSemJava() {
-        assertTrue(pontuador.avaliar(vaga("Desenvolvedor Python", "Django e PJ", "", "remoto")).descartada());
+        assertTrue(rigido.avaliar(vaga("Desenvolvedor Python PJ", "Django", "", "remoto")).descartada());
+        assertTrue(rigido.avaliar(vaga("Desenvolvedor JavaScript PJ", "React", "", "remoto")).descartada());
+        assertTrue(rigido.avaliar(vaga("Produtor In Game PJ", "Roblox e Minecraft Java Edition", "", "remoto")).descartada());
+        assertFalse(rigido.avaliar(vaga("Software Engineer PJ", "APIs com Spring Boot", "", "remoto")).descartada());
     }
 
     @Test
-    void descartaEstagio() {
-        assertTrue(pontuador.avaliar(vaga("Estágio em Desenvolvimento Java", "", "", "")).descartada());
-    }
-
-    @Test
-    void aceitaJunior() {
-        Avaliacao a = pontuador.avaliar(vaga("Desenvolvedor Java Júnior", "Spring", "", ""));
+    void modoFlexivelMantemCltComNotaMenor() {
+        Avaliacao a = flexivel.avaliar(vaga("Desenvolvedor Java", "Regime CLT", "", ""));
 
         assertFalse(a.descartada());
-        assertTrue(a.motivos().contains("+15 vaga de júnior"));
-    }
-
-    @Test
-    void descartaSeniorEAcima() {
-        assertTrue(pontuador.avaliar(vaga("Desenvolvedor Java Sênior", "", "", "")).descartada());
-        assertTrue(pontuador.avaliar(vaga("Engenheiro(a) de Software SR. Java", "", "", "")).descartada());
-        assertTrue(pontuador.avaliar(vaga("Java Developer - Expert-Level", "", "", "")).descartada());
-        assertTrue(pontuador.avaliar(vaga("Tech Lead Java", "", "", "")).descartada());
-    }
-
-    @Test
-    void plenoSeniorContaComoPleno() {
-        assertFalse(pontuador.avaliar(vaga("Pessoa Desenvolvedora Java Pleno/Sênior", "", "", "")).descartada());
-    }
-
-    @Test
-    void apenasRemotoDescartaHibridoEPresencial() {
-        assertTrue(soRemoto.avaliar(vaga("Dev Java Pleno", "2 dias de home office", "", "hibrido")).descartada());
-        assertTrue(soRemoto.avaliar(vaga("Dev Java Pleno", "", "", "")).descartada());
-        assertFalse(soRemoto.avaliar(vaga("Dev Java Pleno", "", "", "remoto")).descartada());
-        assertFalse(soRemoto.avaliar(vaga("[Remoto] Dev Java Pleno", "", "", "")).descartada());
-        assertFalse(soRemoto.avaliar(vaga("Dev Java Pleno", "Atuação 100% remoto", "", "")).descartada());
-        assertTrue(soRemoto.avaliar(vaga("Backend Java PLENO-SENIOR (Híbrido em SP)", "", "", "remoto")).descartada());
-    }
-
-    @Test
-    void naoConfundePalavraDentroDeOutra() {
-        // "javascript" não é Java, e "pj" dentro de outra palavra não conta
-        assertTrue(pontuador.avaliar(vaga("Desenvolvedor JavaScript", "React", "", "")).descartada());
+        assertTrue(a.motivos().contains("-30 parece ser só CLT"));
     }
 }

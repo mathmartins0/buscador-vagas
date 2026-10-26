@@ -11,7 +11,8 @@ import java.util.List;
 public record Config(
         List<String> termosBusca,
         boolean apenasRemoto,
-        boolean linkedinAtivo,
+        boolean apenasPj,
+        List<String> fontesDesligadas,
         String linkedinGeoId,
         int notaMinima,
         int diasMaximos,

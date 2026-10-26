@@ -1,8 +1,12 @@
 package io.github.mathmartins0.vagas;
 
+import io.github.mathmartins0.vagas.fontes.BackendBrFonte;
 import io.github.mathmartins0.vagas.fontes.FonteVagas;
 import io.github.mathmartins0.vagas.fontes.GupyFonte;
+import io.github.mathmartins0.vagas.fontes.InfoJobsFonte;
 import io.github.mathmartins0.vagas.fontes.LinkedInFonte;
+import io.github.mathmartins0.vagas.fontes.RemotarFonte;
+import io.github.mathmartins0.vagas.fontes.VagasComFonte;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -12,6 +16,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Busca vagas nas fontes, tira repetidas e já vistas, dá nota e gera o relatório do dia.
@@ -23,17 +28,23 @@ public class App {
         Config config = Config.carregar(Path.of(args.length > 0 ? args[0] : "config.json"));
         LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 
-        List<FonteVagas> fontes = new ArrayList<>();
-        fontes.add(new GupyFonte());
-        if (config.linkedinAtivo()) {
-            fontes.add(new LinkedInFonte(config.linkedinGeoId(), config.apenasRemoto()));
-        }
+        List<FonteVagas> todas = List.of(
+                new RemotarFonte(),
+                new BackendBrFonte(),
+                new VagasComFonte(),
+                new InfoJobsFonte(),
+                new GupyFonte(),
+                new LinkedInFonte(config.linkedinGeoId(), config.apenasRemoto()));
+        List<FonteVagas> fontes = todas.stream()
+                .filter(f -> config.fontesDesligadas() == null || !config.fontesDesligadas().contains(f.nome()))
+                .toList();
 
         Map<String, Vaga> encontradas = new LinkedHashMap<>();
         Map<String, FonteVagas> fontePorNome = new LinkedHashMap<>();
         for (FonteVagas fonte : fontes) {
             fontePorNome.put(fonte.nome(), fonte);
-            for (String termo : config.termosBusca()) {
+            List<String> termos = fonte.buscaPorTermo() ? config.termosBusca() : List.of("");
+            for (String termo : termos) {
                 try {
                     List<Vaga> vagas = fonte.buscar(termo);
                     vagas.forEach(v -> encontradas.putIfAbsent(v.chave(), v));
@@ -51,11 +62,12 @@ public class App {
         }
 
         Historico historico = new Historico(Path.of("data/vistas.json"));
-        Pontuador pontuador = new Pontuador(config.perfil().habilidades(), config.apenasRemoto());
+        Pontuador pontuador = new Pontuador(config.perfil().habilidades(), config.apenasRemoto(), config.apenasPj());
         GeradorMensagem gerador = new GeradorMensagem(config.perfil(), config.modeloMensagem());
         LocalDate limite = hoje.minusDays(config.diasMaximos());
 
         List<Relatorio.Item> itens = new ArrayList<>();
+        Map<String, Integer> descartes = new TreeMap<>();
         for (Vaga vaga : encontradas.values()) {
             if (historico.jaVista(vaga) || (vaga.publicadaEm() != null && vaga.publicadaEm().isBefore(limite))) {
                 continue;
@@ -68,6 +80,7 @@ public class App {
             }
             historico.marcar(vaga);
             Avaliacao avaliacao = pontuador.avaliar(vaga);
+            descartes.merge(avaliacao.descartada() ? avaliacao.motivos().getFirst() : "entrou no relatório", 1, Integer::sum);
             if (!avaliacao.descartada() && avaliacao.nota() >= config.notaMinima()) {
                 itens.add(new Relatorio.Item(vaga, avaliacao, gerador.gerar(vaga, avaliacao)));
             }
@@ -78,5 +91,6 @@ public class App {
         Path arquivo = relatorio.salvar(Path.of("relatorios"), hoje, relatorio.montar(hoje, itens));
         historico.salvar();
         System.out.printf("%d vagas no relatório: %s%n", itens.size(), arquivo);
+        descartes.forEach((motivo, total) -> System.out.printf("  %3d · %s%n", total, motivo));
     }
 }

@@ -3,66 +3,91 @@ package io.github.mathmartins0.vagas;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Dá uma nota de aderência para a vaga, pensando em PJ, Java, pleno e remoto. */
+/**
+ * Filtra e dá nota de aderência para a vaga.
+ * Primeiro descarta o que não serve (sem Java, sênior, não remota, sem PJ explícito);
+ * o que sobra é ordenado por nível, stack e sinais de PJ.
+ */
 public class Pontuador {
+
+    private static final String[] PALAVRAS_HIBRIDO = {
+            "hibrido", "hibrida", "hybrid", "presencial", "presenciais", "on-site", "onsite",
+            "no escritorio", "in-office", "in office"};
+    private static final String[] PALAVRAS_REMOTO = {
+            "remoto", "remota", "remote", "home office", "home-office", "100% remoto", "totalmente remoto"};
+    private static final String[] PALAVRAS_PJ = {
+            "pj", "pessoa juridica", "cnpj", "prestador de servico", "prestador de servicos",
+            "prestacao de servico", "prestacao de servicos"};
 
     private final List<String> habilidades;
     private final boolean apenasRemoto;
+    private final boolean apenasPj;
 
-    public Pontuador(List<String> habilidades, boolean apenasRemoto) {
+    public Pontuador(List<String> habilidades, boolean apenasRemoto, boolean apenasPj) {
         this.habilidades = habilidades;
         this.apenasRemoto = apenasRemoto;
+        this.apenasPj = apenasPj;
     }
 
     public Avaliacao avaliar(Vaga vaga) {
         String titulo = Texto.normalizar(vaga.titulo());
-        String tudo = titulo + " " + Texto.normalizar(vaga.descricao());
         String contrato = Texto.normalizar(vaga.tipoContrato());
+        // título + tags/rótulos da fonte, que em várias fontes trazem nível e modalidade
+        String cabecalho = titulo + " " + contrato;
+        String tudo = cabecalho + " " + Texto.normalizar(vaga.descricao());
         List<String> motivos = new ArrayList<>();
 
-        if (!Texto.contem(tudo, "java", "spring", "spring boot")) {
-            return descartar("não menciona Java nem Spring");
+        // Java no título/tags, Spring na descrição, ou Java citado mais de uma vez na descrição.
+        // Evita vagas que só citam Java de passagem (ex.: "Minecraft Java Edition").
+        String descricao = Texto.normalizar(vaga.descricao());
+        if (!Texto.contem(cabecalho, "java", "spring", "spring boot")
+                && !Texto.contem(descricao, "spring", "spring boot")
+                && Texto.contar(descricao, "java") < 2) {
+            return descartar("não é vaga de Java");
         }
         if (Texto.contem(titulo, "estagio", "estagiario", "trainee", "aprendiz")) {
             return descartar("vaga de estágio ou trainee");
         }
-        boolean pleno = Texto.contem(titulo, "pleno", "pl", "mid", "mid-level");
-        boolean junior = Texto.contem(titulo, "junior", "jr");
-        if (!pleno && !junior && Texto.contem(titulo, "senior", "sr", "especialista", "specialist", "spec",
+        boolean pleno = Texto.contem(cabecalho, "pleno", "pl", "mid", "mid-level");
+        boolean junior = Texto.contem(cabecalho, "junior", "jr");
+        if (!pleno && !junior && Texto.contem(cabecalho, "senior", "sr", "especialista", "specialist", "spec",
                 "expert", "lead", "lider", "staff", "principal", "arquiteto", "architect")) {
             return descartar("vaga sênior ou acima");
         }
-        String modalidade = Texto.normalizar(vaga.modalidade());
-        // O título manda: há vagas marcadas como remotas no LinkedIn com "(Híbrido)" no nome
-        boolean remoto = !Texto.contem(titulo, "hibrido", "hybrid", "presencial", "on-site", "onsite")
-                && (modalidade.equals("remoto")
-                || Texto.contem(titulo, "remoto", "remote", "home office")
-                || Texto.contem(tudo, "100% remoto", "totalmente remoto", "100% remote", "fully remote"));
+        if (Texto.contem(contrato, "vaga internacional")) {
+            return descartar("vaga internacional");
+        }
+
+        // Qualquer menção a híbrido ou presencial derruba a vaga, mesmo se a fonte disser "remoto":
+        // é comum "100% home office fora de SP, presencial 1x por semana para quem mora em SP".
+        boolean mencionaHibrido = Texto.contem(tudo, PALAVRAS_HIBRIDO);
+        boolean remoto = !mencionaHibrido
+                && (Texto.normalizar(vaga.modalidade()).equals("remoto") || Texto.contem(cabecalho, PALAVRAS_REMOTO)
+                || Texto.contem(tudo, "100% remoto", "totalmente remoto", "100% remote", "fully remote",
+                        "100% home office"));
         if (apenasRemoto && !remoto) {
-            return descartar("não é remota");
+            return descartar(mencionaHibrido ? "menciona híbrido ou presencial" : "não diz que é remota");
+        }
+
+        boolean pj = contrato.contains("legal_entity") || Texto.contem(tudo, PALAVRAS_PJ);
+        if (apenasPj && !pj) {
+            return descartar("não diz que aceita PJ");
         }
 
         int nota = 0;
-
         if (Texto.contem(titulo, "java", "backend", "back-end", "back end", "spring")) {
             nota += 20;
             motivos.add("+20 título de Java/backend");
         }
-
-        boolean pj = contrato.contains("legal_entity")
-                || Texto.contem(contrato, "contrato", "contract", "freelance", "temporario")
-                || Texto.contem(tudo, "pj", "pessoa juridica", "contrato pj", "cnpj", "prestador de servico");
-        boolean clt = contrato.contains("effective") || Texto.contem(tudo, "clt");
         if (pj) {
             nota += 30;
-            motivos.add("+30 aceita PJ");
-        } else if (clt) {
+            motivos.add(Texto.contem(cabecalho, PALAVRAS_PJ) || contrato.contains("legal_entity")
+                    ? "+30 PJ informado pela fonte ou no título"
+                    : "+30 PJ citado na descrição");
+        } else if (contrato.contains("effective") || Texto.contem(tudo, "clt")) {
             nota -= 30;
             motivos.add("-30 parece ser só CLT");
-        } else {
-            motivos.add("+0 tipo de contrato não informado");
         }
-
         if (pleno) {
             nota += 20;
             motivos.add("+20 vaga de pleno");
@@ -73,13 +98,9 @@ public class Pontuador {
             nota += 10;
             motivos.add("+10 nível não informado");
         }
-
         if (remoto) {
             nota += 15;
             motivos.add("+15 remoto");
-        } else if (modalidade.equals("hibrido") || Texto.contem(tudo, "hibrido")) {
-            nota += 5;
-            motivos.add("+5 híbrido");
         }
 
         List<String> emComum = new ArrayList<>();

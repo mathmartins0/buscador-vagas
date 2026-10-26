@@ -25,11 +25,12 @@ public class Historico {
     }
 
     public boolean jaVista(Vaga vaga) {
-        return vistas.contains(vaga.chave());
+        return vistas.contains(vaga.chave()) || vistas.contains(vaga.chaveDeOrigem());
     }
 
     public void marcar(Vaga vaga) {
         vistas.add(vaga.chave());
+        vistas.add(vaga.chaveDeOrigem());
     }
 
     public void salvar() throws IOException {

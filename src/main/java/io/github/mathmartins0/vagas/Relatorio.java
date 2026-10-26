@@ -9,6 +9,8 @@ import java.util.List;
 /** Monta o relatório do dia em Markdown, da vaga com maior nota para a menor. */
 public class Relatorio {
 
+    static final String SEM_VAGAS = "Nenhuma vaga nova acima da nota mínima hoje.";
+
     public record Item(Vaga vaga, Avaliacao avaliacao, String mensagem) {
     }
 
@@ -16,7 +18,7 @@ public class Relatorio {
         StringBuilder md = new StringBuilder();
         md.append("# Vagas de ").append(dia).append("\n\n");
         if (itens.isEmpty()) {
-            return md.append("Nenhuma vaga nova acima da nota mínima hoje.\n").toString();
+            return md.append(SEM_VAGAS).append("\n").toString();
         }
         md.append(itens.size()).append(" vagas novas. Abra o link, revise a mensagem e envie.\n\n");
         md.append("| Nota | Vaga | Empresa | Local | Fonte |\n|---:|---|---|---|---|\n");
@@ -44,10 +46,19 @@ public class Relatorio {
         return md.toString();
     }
 
-    public Path salvar(Path pasta, LocalDate dia, String conteudo) throws IOException {
+    /**
+     * Grava o relatório do dia. Se o bot rodar de novo no mesmo dia, não apaga o que já estava lá:
+     * vagas novas entram no fim do arquivo e uma execução sem novidades não muda nada.
+     */
+    public Path salvar(Path pasta, LocalDate dia, List<Item> itens) throws IOException {
         Files.createDirectories(pasta);
         Path arquivo = pasta.resolve(dia + ".md");
-        Files.writeString(arquivo, conteudo);
+        if (!Files.exists(arquivo) || Files.readString(arquivo).contains(SEM_VAGAS)) {
+            Files.writeString(arquivo, montar(dia, itens));
+        } else if (!itens.isEmpty()) {
+            String novas = montar(dia, itens).replaceFirst("^# .*\n", "## Mais vagas encontradas no mesmo dia\n");
+            Files.writeString(arquivo, Files.readString(arquivo) + "\n---\n\n" + novas);
+        }
         return arquivo;
     }
 

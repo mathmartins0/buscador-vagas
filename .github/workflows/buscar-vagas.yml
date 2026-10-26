@@ -52,16 +52,22 @@ jobs:
         run: java -jar target/buscador-vagas.jar config.json
 
       - name: Salvar relatório no repositório
+        id: salvar
         if: steps.hoje.outputs.pular != 'true'
         run: |
           git config user.name "buscador-vagas"
           git config user.email "actions@users.noreply.github.com"
-          git add relatorios data
-          git diff --cached --quiet || git commit -m "Vagas de ${{ steps.hoje.outputs.dia }}"
+          git add data
+          git diff --cached --quiet || git commit -q -m "Histórico de vagas vistas"
+          git add relatorios
+          if ! git diff --cached --quiet; then
+            git commit -m "Vagas de ${{ steps.hoje.outputs.dia }}"
+            echo "relatorio_mudou=true" >> "$GITHUB_OUTPUT"
+          fi
           git push
 
       - name: Abrir issue com as vagas do dia
-        if: steps.hoje.outputs.pular != 'true'
+        if: steps.salvar.outputs.relatorio_mudou == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

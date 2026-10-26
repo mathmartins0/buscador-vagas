@@ -97,7 +97,7 @@ public class App {
         itens.sort(Comparator.comparingInt((Relatorio.Item i) -> i.avaliacao().nota()).reversed());
 
         Relatorio relatorio = new Relatorio();
-        Path arquivo = relatorio.salvar(Path.of("relatorios"), hoje, relatorio.montar(hoje, itens));
+        Path arquivo = relatorio.salvar(Path.of("relatorios"), hoje, itens);
         historico.salvar();
         System.out.printf("%d vagas no relatório: %s%n", itens.size(), arquivo);
         descartes.forEach((motivo, total) -> System.out.printf("  %3d · %s%n", total, motivo));

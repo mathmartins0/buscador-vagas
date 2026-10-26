@@ -9,6 +9,10 @@
   "apenasRemoto": true,
   "apenasPj": true,
   "fontesDesligadas": [],
+  "alertasEmail": {
+    "remetentes": ["indeed", "glassdoor", "programathor", "jobbol"],
+    "dias": 3
+  },
   "linkedinGeoId": "106057199",
   "notaMinima": 40,
   "diasMaximos": 14,

@@ -1,6 +1,7 @@
 package io.github.mathmartins0.vagas;
 
 import io.github.mathmartins0.vagas.fontes.BackendBrFonte;
+import io.github.mathmartins0.vagas.fontes.EmailAlertasFonte;
 import io.github.mathmartins0.vagas.fontes.FonteVagas;
 import io.github.mathmartins0.vagas.fontes.GupyFonte;
 import io.github.mathmartins0.vagas.fontes.InfoJobsFonte;
@@ -35,9 +36,16 @@ public class App {
                 new InfoJobsFonte(),
                 new GupyFonte(),
                 new LinkedInFonte(config.linkedinGeoId(), config.apenasRemoto()));
-        List<FonteVagas> fontes = todas.stream()
+        List<FonteVagas> fontes = new ArrayList<>(todas.stream()
                 .filter(f -> config.fontesDesligadas() == null || !config.fontesDesligadas().contains(f.nome()))
-                .toList();
+                .toList());
+        EmailAlertasFonte alertas = config.alertasEmail() == null ? null
+                : EmailAlertasFonte.doAmbiente(config.alertasEmail().remetentes(), config.alertasEmail().dias());
+        if (alertas != null) {
+            fontes.add(alertas);
+        } else {
+            System.out.println("Alertas por e-mail desligados (faltam EMAIL_USUARIO e EMAIL_SENHA_APP).");
+        }
 
         Map<String, Vaga> encontradas = new LinkedHashMap<>();
         Map<String, FonteVagas> fontePorNome = new LinkedHashMap<>();
@@ -73,7 +81,8 @@ public class App {
                 continue;
             }
             try {
-                vaga = fontePorNome.get(vaga.fonte()).detalhar(vaga);
+                FonteVagas origem = fontePorNome.get(vaga.fonte());
+                vaga = origem == null ? vaga : origem.detalhar(vaga);
             } catch (Exception e) {
                 System.err.printf("Detalhes de %s falharam (%s)%n", vaga.url(), e.getMessage());
                 continue;

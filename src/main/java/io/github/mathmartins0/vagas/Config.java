@@ -16,8 +16,13 @@ public record Config(
         String linkedinGeoId,
         int notaMinima,
         int diasMaximos,
+        AlertasEmail alertasEmail,
         Perfil perfil,
         String modeloMensagem) {
+
+    /** De quem são os e-mails de alerta (trecho do endereço) e quantos dias para trás ler. */
+    public record AlertasEmail(List<String> remetentes, int dias) {
+    }
 
     public record Perfil(
             String nome,

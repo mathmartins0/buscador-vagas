@@ -21,10 +21,11 @@ public class Relatorio {
             return md.append(SEM_VAGAS).append("\n").toString();
         }
         md.append(itens.size()).append(" vagas novas. Abra o link, revise a mensagem e envie.\n\n");
-        md.append("| Nota | Vaga | Empresa | Local | Fonte |\n|---:|---|---|---|---|\n");
+        md.append("| Nota | Tipo | Vaga | Empresa | Local | Fonte |\n|---:|---|---|---|---|---|\n");
         for (Item item : itens) {
             Vaga v = item.vaga();
             md.append("| ").append(item.avaliacao().nota())
+                    .append(" | ").append(tipo(item.avaliacao()))
                     .append(" | [").append(celula(v.titulo())).append("](").append(v.url()).append(")")
                     .append(" | ").append(celula(v.empresa()))
                     .append(" | ").append(celula(local(v)))
@@ -33,7 +34,8 @@ public class Relatorio {
         md.append("\n---\n");
         for (Item item : itens) {
             Vaga v = item.vaga();
-            md.append("\n## ").append(item.avaliacao().nota()).append(" · ").append(v.titulo())
+            md.append("\n## ").append(item.avaliacao().nota()).append(" · ").append(tipo(item.avaliacao()))
+                    .append(" · ").append(v.titulo())
                     .append(" (").append(v.empresa()).append(")\n\n")
                     .append("[Abrir vaga](").append(v.url()).append(")\n\n");
             for (String motivo : item.avaliacao().motivos()) {
@@ -60,6 +62,11 @@ public class Relatorio {
             Files.writeString(arquivo, Files.readString(arquivo) + "\n---\n\n" + novas);
         }
         return arquivo;
+    }
+
+    private static String tipo(Avaliacao a) {
+        String rotulo = a.categoria() == null ? "" : a.categoria().rotulo();
+        return a.noturna() ? rotulo + " 🌙 noturna" : rotulo;
     }
 
     private static String local(Vaga v) {

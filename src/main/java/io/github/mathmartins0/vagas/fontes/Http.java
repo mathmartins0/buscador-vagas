@@ -35,6 +35,11 @@ final class Http {
                 .GET();
         cabecalhos.forEach(requisicao::header);
         HttpResponse<String> resposta = CLIENTE.send(requisicao.build(), HttpResponse.BodyHandlers.ofString());
+        if (resposta.statusCode() == 429) {
+            // "muitas requisições": espera um pouco e tenta uma vez de novo
+            Thread.sleep(20_000);
+            resposta = CLIENTE.send(requisicao.build(), HttpResponse.BodyHandlers.ofString());
+        }
         if (resposta.statusCode() != 200) {
             throw new IOException("HTTP " + resposta.statusCode() + " em " + url);
         }

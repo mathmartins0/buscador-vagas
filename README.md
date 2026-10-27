@@ -1,6 +1,6 @@
 # Buscador de Vagas
 
-Bot em Java 21 que procura vagas de desenvolvedor Java, dá uma nota de aderência (PJ, pleno, remoto, stack) e prepara uma mensagem de candidatura personalizada para cada uma. Ele **não se candidata sozinho**: você abre o link, revisa a mensagem e envia. Assim nenhuma conta corre risco de bloqueio por automação.
+Bot em Java 21 que procura vagas de desenvolvedor Java e de suporte técnico/helpdesk, dá uma nota de aderência (PJ, pleno, remoto, stack) e prepara uma mensagem de candidatura personalizada para cada uma. Ele **não se candidata sozinho**: você abre o link, revisa a mensagem e envia. Assim nenhuma conta corre risco de bloqueio por automação.
 
 ## Como funciona
 
@@ -18,24 +18,26 @@ Bot em Java 21 que procura vagas de desenvolvedor Java, dá uma nota de aderênc
    Indeed, Glassdoor, Programathor e Jobbol bloqueiam acesso automatizado. Para eles, o bot lê os **alertas de vaga que chegam no seu Gmail** (veja abaixo).
 
 2. Remove repetidas, vagas já mostradas antes (`data/vistas.json`) e vagas mais antigas que `diasMaximos`.
-3. **Descarta** a vaga se:
-   - não é de Java (Java no título/tags, Spring na descrição, ou Java citado mais de uma vez);
-   - é estágio/trainee, ou sênior e acima (especialista, lead, staff...) sem citar pleno ou júnior;
+3. Classifica cada vaga como **Dev Java** (Java no título/tags, Spring na descrição, ou Java citado mais de uma vez) ou **Suporte/Helpdesk** (helpdesk/service desk/suporte técnico no título, ou "suporte" com contexto de TI), e marca as **noturnas** (noturno, madrugada, turno da noite, horários como 22h às 6h).
+4. **Descarta** a vaga se:
+   - não é de nenhuma das duas áreas;
+   - é estágio/trainee, ou sênior e acima (especialista, lead, staff, coordenador, N3...) sem citar pleno ou júnior;
    - é vaga internacional;
    - com `apenasRemoto`: cita **híbrido ou presencial em qualquer lugar** (título, tags ou descrição), ou não diz que é remota;
-   - com `apenasPj`: não diz em lugar nenhum que aceita PJ (tag/filtro da fonte, "PJ", "CNPJ", "pessoa jurídica", "prestador de serviços").
-4. Dá uma nota de 0 a 100 para o que sobrou:
+   - com `apenasPj`: não diz em lugar nenhum que aceita PJ (tag/filtro da fonte, "PJ", "CNPJ", "pessoa jurídica", "prestador de serviços"). Exceção: suporte **noturno** remoto entra mesmo sem PJ quando `suporteNoturnoExigePj` é `false`.
+5. Dá uma nota de 0 a 100 para o que sobrou:
 
 | Critério | Pontos |
 |---|---:|
-| Título de Java/backend | +20 |
+| Título de Java/backend, ou vaga de suporte | +20 |
 | Aceita PJ | +30 |
 | Só CLT (quando `apenasPj` está desligado) | −30 |
-| Pleno / júnior / nível não informado | +20 / +15 / +10 |
+| Pleno (ou N2) / júnior (ou N1) / nível não informado | +20 / +15 / +10 |
 | Remoto | +15 |
+| Turno noturno | +10 |
 | Cada habilidade do seu perfil citada na vaga | +3 (até +15) |
 
-5. Gera `relatorios/AAAA-MM-DD.md` com as vagas acima de `notaMinima`, cada uma com os motivos da nota e a mensagem pronta. No log da execução aparece quantas vagas caíram em cada motivo de descarte.
+6. Gera `relatorios/AAAA-MM-DD.md` com as vagas acima de `notaMinima`, cada uma com os motivos da nota e a mensagem pronta. No log da execução aparece quantas vagas caíram em cada motivo de descarte.
 
 ## Rodar no seu computador
 
@@ -68,14 +70,15 @@ Como cada site monta o e-mail do seu jeito, a leitura pega os links que apontam 
 
 Tudo fica no `config.json`:
 
-- `termosBusca`: o que pesquisar.
+- `termosBusca` e `termosBuscaSuporte`: o que pesquisar para dev e para suporte.
+- `suporteNoturnoExigePj`: `true` para exigir PJ também nas vagas noturnas de suporte.
 - `apenasRemoto`: `true` para receber só vagas 100% remotas.
 - `apenasPj`: `true` para receber só vagas que dizem aceitar PJ.
 - `fontesDesligadas`: nomes de fontes para não consultar, ex.: `["LinkedIn", "Gupy"]`.
 - `linkedinGeoId`: região da busca no LinkedIn (`106057199` = Brasil).
 - `notaMinima`: suba para receber menos vagas e mais certeiras.
-- `perfil.habilidades`: usadas na nota e na mensagem.
-- `modeloMensagem`: o texto da mensagem. Aceita `{empresa}`, `{titulo}`, `{habilidades}`, `{nome}`, `{email}`, `{telefone}`, `{linkedin}` e `{github}`.
+- `perfil.habilidades` e `perfil.habilidadesSuporte`: usadas na nota e na mensagem de cada área.
+- `modeloMensagem` e `modeloMensagemSuporte`: o texto da mensagem de cada área. Aceitam `{empresa}`, `{titulo}`, `{habilidades}`, `{turno}` (vira ", inclusive no turno da noite" nas vagas noturnas), `{nome}`, `{email}`, `{telefone}`, `{linkedin}` e `{github}`.
 
 Para adicionar outra fonte de vagas, implemente `FonteVagas` e registre na lista de `App`.
 

@@ -4,13 +4,29 @@
     "java pleno",
     "java junior",
     "java pj",
-    "spring boot"
+    "spring boot",
+    "java noturno"
+  ],
+  "termosBuscaSuporte": [
+    "suporte tecnico",
+    "helpdesk",
+    "service desk",
+    "analista de suporte",
+    "suporte ti",
+    "suporte noturno",
+    "helpdesk noturno"
   ],
   "apenasRemoto": true,
   "apenasPj": true,
+  "suporteNoturnoExigePj": false,
   "fontesDesligadas": [],
   "alertasEmail": {
-    "remetentes": ["indeed", "glassdoor", "programathor", "jobbol"],
+    "remetentes": [
+      "indeed",
+      "glassdoor",
+      "programathor",
+      "jobbol"
+    ],
     "dias": 3
   },
   "linkedinGeoId": "106057199",
@@ -23,10 +39,37 @@
     "linkedin": "linkedin.com/in/matheus-martins-baptista-b4748b233",
     "github": "github.com/mathmartins0",
     "habilidades": [
-      "Spring Boot", "REST", "SOAP", "Microsserviços",
-      "SQL Server", "Oracle", "PostgreSQL", "Spring Security", "Spring Batch", "Spring Data",
-      "Docker", "Kubernetes", "Azure DevOps", "ArgoCD", "CI/CD", "Jenkins", "Angular"
+      "Spring Boot",
+      "REST",
+      "SOAP",
+      "Microsserviços",
+      "SQL Server",
+      "Oracle",
+      "PostgreSQL",
+      "Spring Security",
+      "Spring Batch",
+      "Spring Data",
+      "Docker",
+      "Kubernetes",
+      "Azure DevOps",
+      "ArgoCD",
+      "CI/CD",
+      "Jenkins",
+      "Angular"
+    ],
+    "habilidadesSuporte": [
+      "Windows",
+      "Linux",
+      "macOS",
+      "Windows Server",
+      "GLPI",
+      "chamados",
+      "hardware",
+      "atendimento remoto",
+      "SQL",
+      "Docker"
     ]
   },
-  "modeloMensagem": "Olá, pessoal da {empresa}! Tudo bem?\n\nVi a vaga de {titulo} e me interessei bastante. Sou desenvolvedor backend Java com 6 anos de experiência em sistemas corporativos (ERP, educacional, fiscal e seguros), trabalhando no dia a dia com {habilidades}. Também cuido de deploys com Docker e Kubernetes e já conduzo refinamentos com a squad.\n\nTenho disponibilidade para atuar como PJ. Se fizer sentido, adoraria conversar.\n\nAbraço,\n{nome}\n{email}\n{linkedin}"
+  "modeloMensagem": "Olá, pessoal da {empresa}! Tudo bem?\n\nVi a vaga de {titulo} e me interessei bastante. Sou desenvolvedor backend Java com 6 anos de experiência em sistemas corporativos (ERP, educacional, fiscal e seguros), trabalhando no dia a dia com {habilidades}. Também cuido de deploys com Docker e Kubernetes e já conduzo refinamentos com a squad.\n\nTenho disponibilidade para atuar como PJ{turno}. Se fizer sentido, adoraria conversar.\n\nAbraço,\n{nome}\n{email}\n{linkedin}",
+  "modeloMensagemSuporte": "Olá, pessoal da {empresa}! Tudo bem?\n\nVi a vaga de {titulo} e me interessei bastante. Comecei a carreira em suporte técnico, com atendimento remoto e em campo, instalação e manutenção de estações de trabalho (Windows, Linux e Mac) e implantação do GLPI para gestão de chamados. Hoje atuo como desenvolvedor, o que ajuda muito a investigar problemas em sistemas e a explicar soluções para o usuário. No dia a dia trabalho com {habilidades}.\n\nTenho disponibilidade para atuar como PJ{turno}. Se fizer sentido, adoraria conversar.\n\nAbraço,\n{nome}\n{email}\n{linkedin}"
 }

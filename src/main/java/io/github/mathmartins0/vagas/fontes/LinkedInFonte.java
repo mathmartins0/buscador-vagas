@@ -22,7 +22,7 @@ public class LinkedInFonte implements FonteVagas {
     private static final String BUSCA = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
             + "?f_TPR=r604800&geoId=%s&keywords=%s&start=%d";
     private static final String DETALHE = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/";
-    private static final int PAGINAS = 3;
+    private static final int PAGINAS = 2;
     private static final int POR_PAGINA = 10;
 
     private final String geoId;

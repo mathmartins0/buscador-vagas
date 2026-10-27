@@ -2,29 +2,37 @@ package io.github.mathmartins0.vagas;
 
 import java.util.List;
 
-/** Preenche o modelo de mensagem do config.json com os dados da vaga. */
+/** Preenche o modelo de mensagem do config.json com os dados da vaga (um modelo para dev, outro para suporte). */
 public class GeradorMensagem {
 
     private static final int MAX_HABILIDADES = 4;
 
     private final Config.Perfil perfil;
-    private final String modelo;
+    private final String modeloDev;
+    private final String modeloSuporte;
+
+    public GeradorMensagem(Config.Perfil perfil, String modeloDev, String modeloSuporte) {
+        this.perfil = perfil;
+        this.modeloDev = modeloDev;
+        this.modeloSuporte = modeloSuporte == null || modeloSuporte.isBlank() ? modeloDev : modeloSuporte;
+    }
 
     public GeradorMensagem(Config.Perfil perfil, String modelo) {
-        this.perfil = perfil;
-        this.modelo = modelo;
+        this(perfil, modelo, modelo);
     }
 
     public String gerar(Vaga vaga, Avaliacao avaliacao) {
-        List<String> destaque = avaliacao.habilidadesEmComum().isEmpty()
-                ? perfil.habilidades()
-                : avaliacao.habilidadesEmComum();
+        boolean suporte = avaliacao.categoria() == Categoria.SUPORTE;
+        List<String> doPerfil = suporte && perfil.habilidadesSuporte() != null
+                ? perfil.habilidadesSuporte() : perfil.habilidades();
+        List<String> destaque = avaliacao.habilidadesEmComum().isEmpty() ? doPerfil : avaliacao.habilidadesEmComum();
         String habilidades = juntar(destaque.subList(0, Math.min(MAX_HABILIDADES, destaque.size())));
 
-        return modelo
+        return (suporte ? modeloSuporte : modeloDev)
                 .replace("{empresa}", vazioSe(vaga.empresa(), "time"))
                 .replace("{titulo}", vaga.titulo())
                 .replace("{habilidades}", habilidades)
+                .replace("{turno}", avaliacao.noturna() ? ", inclusive no turno da noite" : "")
                 .replace("{nome}", perfil.nome())
                 .replace("{email}", perfil.email())
                 .replace("{telefone}", perfil.telefone())

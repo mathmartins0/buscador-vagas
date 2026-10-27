@@ -57,7 +57,7 @@ public class App {
         Map<String, FonteVagas> fontePorNome = new LinkedHashMap<>();
         for (FonteVagas fonte : fontes) {
             fontePorNome.put(fonte.nome(), fonte);
-            List<String> termos = fonte.buscaPorTermo() ? config.termosBusca() : List.of("");
+            List<String> termos = fonte.buscaPorTermo() ? config.todosOsTermos() : List.of("");
             for (String termo : termos) {
                 try {
                     List<Vaga> vagas = fonte.buscar(termo);
@@ -76,8 +76,10 @@ public class App {
         }
 
         Historico historico = new Historico(Path.of("data/vistas.json"));
-        Pontuador pontuador = new Pontuador(config.perfil().habilidades(), config.apenasRemoto(), config.apenasPj());
-        GeradorMensagem gerador = new GeradorMensagem(config.perfil(), config.modeloMensagem());
+        Pontuador pontuador = new Pontuador(config.perfil().habilidades(),
+                config.perfil().habilidadesSuporte() == null ? List.of() : config.perfil().habilidadesSuporte(),
+                config.apenasRemoto(), config.apenasPj(), config.suporteNoturnoExigePj());
+        GeradorMensagem gerador = new GeradorMensagem(config.perfil(), config.modeloMensagem(), config.modeloMensagemSuporte());
         LocalDate limite = hoje.minusDays(config.diasMaximos());
 
         List<Relatorio.Item> itens = new ArrayList<>();

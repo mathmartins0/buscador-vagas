@@ -111,4 +111,56 @@ class PontuadorTest {
         assertFalse(a.descartada());
         assertTrue(a.motivos().contains("-30 parece ser só CLT"));
     }
+
+    private final Pontuador comSuporte = new Pontuador(List.of("Spring Boot"), List.of("Windows", "GLPI"), true, true, false);
+
+    @Test
+    void reconheceVagaDeSuporteRemotaPj() {
+        Avaliacao a = comSuporte.avaliar(vaga("Analista de Suporte Técnico N1", "Atendimento de chamados no GLPI, Windows. PJ", "", "remoto"));
+
+        assertFalse(a.descartada());
+        assertEquals(Categoria.SUPORTE, a.categoria());
+        assertTrue(a.motivos().contains("+15 vaga de júnior"));
+        assertEquals(List.of("Windows", "GLPI"), a.habilidadesEmComum());
+        assertEquals(Categoria.SUPORTE, comSuporte.avaliar(vaga("Helpdesk PJ", "", "", "remoto")).categoria());
+    }
+
+    @Test
+    void suporteSemContextoDeTiNaoContaComoSuporte() {
+        assertEquals("não é vaga de Java nem de suporte",
+                motivo(comSuporte.avaliar(vaga("Suporte ao Cliente PJ", "Atendimento a lojistas por chat", "", "remoto"))));
+    }
+
+    @Test
+    void suporteSeguePjERemoto() {
+        assertEquals("não diz que aceita PJ", motivo(comSuporte.avaliar(vaga("Helpdesk N1", "", "", "remoto"))));
+        assertTrue(comSuporte.avaliar(vaga("Helpdesk N1 PJ", "Escala híbrida", "", "remoto")).descartada());
+        assertTrue(comSuporte.avaliar(vaga("Coordenador de Service Desk PJ", "", "", "remoto")).descartada());
+    }
+
+    @Test
+    void suporteNoturnoRemotoEntraMesmoSemPj() {
+        Avaliacao a = comSuporte.avaliar(vaga("Analista de Service Desk", "Escala das 22h às 6h", "", "remoto"));
+
+        assertFalse(a.descartada());
+        assertTrue(a.noturna());
+        assertTrue(a.motivos().contains("+10 turno noturno"));
+        assertTrue(comSuporte.avaliar(vaga("Helpdesk Noturno", "", "", "")).descartada()); // continua exigindo remoto
+    }
+
+    @Test
+    void devNoturnoSegueAsMesmasRegras() {
+        assertEquals("não diz que aceita PJ",
+                motivo(comSuporte.avaliar(vaga("Desenvolvedor Java Pleno", "Turno noturno", "", "remoto"))));
+        Avaliacao a = comSuporte.avaliar(vaga("Desenvolvedor Java Pleno PJ", "Período noturno", "", "remoto"));
+        assertFalse(a.descartada());
+        assertTrue(a.noturna());
+    }
+
+    @Test
+    void naoConfundeHorarioComercialComNoturno() {
+        assertFalse(comSuporte.avaliar(vaga("Helpdesk PJ", "Das 8h às 18h", "", "remoto")).noturna());
+        assertFalse(comSuporte.avaliar(vaga("Helpdesk PJ", "Das 10h às 19h", "", "remoto")).noturna());
+        assertTrue(comSuporte.avaliar(vaga("Helpdesk PJ", "Plantão 00h as 06h", "", "remoto")).noturna());
+    }
 }

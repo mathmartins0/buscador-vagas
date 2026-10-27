@@ -75,6 +75,28 @@ class LeitorAlertaEmailTest {
     }
 
     @Test
+    void ignoraLinksQueNaoSaoCargos() {
+        String html = """
+                <div><a href="https://engage.indeed.com/f/a/1">Editar</a> java pj Home-Office</div>
+                <div><a href="https://engage.indeed.com/f/a/2">desde ontem</a></div>
+                <div><a href="https://engage.indeed.com/f/a/3">Crie seu Currículo Indeed</a></div>
+                <div><a href="https://engage.indeed.com/f/a/4">Desenvolvedor Java Pleno</a> Acme · Remoto</div>
+                """;
+
+        List<Vaga> vagas = leitor.ler("Indeed <alert@indeed.com>", "java pj - novas vagas", html, hoje);
+
+        assertEquals(List.of("Desenvolvedor Java Pleno"), vagas.stream().map(Vaga::titulo).toList());
+    }
+
+    @Test
+    void ignoraEmailsDeConfirmacaoDeConta() {
+        String html = "<div><a href=\"https://engage.indeed.com/f/a/4\">Desenvolvedor Java Pleno</a></div>";
+
+        assertTrue(leitor.ler("alert@indeed.com", "O seu alerta de vagas para: java pj foi ativado com sucesso!", html, hoje).isEmpty());
+        assertTrue(leitor.ler("x@jobbol.com.br", "Confirme seu e-mail - Jobbol", html, hoje).isEmpty());
+    }
+
+    @Test
     void identificaOSitePeloRemetente() {
         assertEquals("glassdoor", LeitorAlertaEmail.site("Glassdoor Jobs <noreply@glassdoor.com>"));
         assertEquals("exemplo.com", LeitorAlertaEmail.site("vagas@exemplo.com"));

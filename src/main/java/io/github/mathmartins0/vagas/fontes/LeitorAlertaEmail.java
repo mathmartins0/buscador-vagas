@@ -41,6 +41,13 @@ public class LeitorAlertaEmail {
             "(ha \\d+\\+? (dias|dia|horas|hora|semanas|semana)|\\d+ (dias|dia) atras|hoje|ontem|"
                     + "publicad[ao] [^·|]*|nova|novo|new|\\d+[dh] ago)");
     private static final int BLOCO_MAXIMO = 700;
+    /** E-mails de cadastro, confirmação ou conta, que não são alertas de vaga. */
+    private static final Pattern ASSUNTO_DE_CONTA = Pattern.compile(
+            "(ativad|confirm|verifiq|valid|senha|password|bem-vind|bem vind|welcome|cadastro|conta criada)");
+    /** O texto do link precisa parecer um cargo; descarta "Editar", "desde ontem", "Crie seu currículo"... */
+    private static final Pattern PARECE_CARGO = Pattern.compile(
+            "(desenvolv|developer|engenheir|engineer|engenharia|analista|programador|java|back-?end|full ?stack|"
+                    + "software|\\bdev\\b|arquitet|consultor|especialista|tech lead|sistemas|ti\\b)");
 
     public List<Vaga> ler(String remetente, String assunto, String html, LocalDate recebidoEm) {
         String site = site(remetente);
@@ -49,11 +56,15 @@ public class LeitorAlertaEmail {
         boolean buscaPj = Pattern.compile("(?<![a-z0-9])pj(?![a-z0-9])").matcher(normalizar(assunto)).find();
 
         Map<String, Vaga> vagas = new LinkedHashMap<>();
+        if (ASSUNTO_DE_CONTA.matcher(normalizar(assunto)).find()) {
+            return new ArrayList<>();
+        }
         for (Element link : Jsoup.parse(html).select("a[href]")) {
             String href = link.attr("href");
             String titulo = link.text().trim();
             if (!padrao.matcher(href).find() || titulo.length() < 6 || titulo.length() > 150
-                    || TEXTO_DE_NAVEGACAO.matcher(titulo).find() || !mesmoSite(href, site)) {
+                    || TEXTO_DE_NAVEGACAO.matcher(titulo).find() || !PARECE_CARGO.matcher(normalizar(titulo)).find()
+                    || !mesmoSite(href, site)) {
                 continue;
             }
             String bloco = bloco(link);

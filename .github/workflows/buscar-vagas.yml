@@ -2,11 +2,13 @@ name: Buscar vagas
 
 on:
   schedule:
-    # O GitHub atrasa ou pula horários "redondos" quando está sobrecarregado.
-    # Por isso há três horários fora da hora cheia; se o relatório do dia já existe, os outros não fazem nada.
-    - cron: "17 10 * * 1-5" # 7h17 em Brasília
-    - cron: "43 13 * * 1-5" # 10h43
-    - cron: "29 17 * * 1-5" # 14h29
+    # Segunda a sábado, às 8h e às 17h de Brasília (UTC-3).
+    # O GitHub às vezes atrasa ou pula horários agendados, então cada turno tem um horário reserva
+    # 40 minutos depois; se o turno já rodou, o reserva não faz nada.
+    - cron: "2 11 * * 1-6"  # 8h02
+    - cron: "42 11 * * 1-6" # 8h42 (reserva)
+    - cron: "2 20 * * 1-6"  # 17h02
+    - cron: "42 20 * * 1-6" # 17h42 (reserva)
   workflow_dispatch: # botão "Run workflow" para rodar na hora
 
 permissions:
@@ -22,13 +24,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Ver se já rodou hoje
+      - name: Ver se este turno já rodou
         id: hoje
         run: |
           DIA=$(TZ=America/Sao_Paulo date +%F)
+          if [ "$(TZ=America/Sao_Paulo date +%-H)" -lt 13 ]; then TURNO=manha; else TURNO=tarde; fi
           echo "dia=$DIA" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.event_name }}" = "schedule" ] && [ -f "relatorios/$DIA.md" ]; then
-            echo "Relatório de $DIA já existe."
+          echo "turno=$TURNO" >> "$GITHUB_OUTPUT"
+          # linhas que o relatório do dia já tinha, para a issue mostrar só o que for novo
+          echo "linhas=$(cat "relatorios/$DIA.md" 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(cat data/ultimo-turno.txt 2>/dev/null)" = "$DIA $TURNO" ]; then
+            echo "O turno $TURNO de $DIA já rodou."
             echo "pular=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -57,6 +63,7 @@ jobs:
         run: |
           git config user.name "buscador-vagas"
           git config user.email "actions@users.noreply.github.com"
+          echo "${{ steps.hoje.outputs.dia }} ${{ steps.hoje.outputs.turno }}" > data/ultimo-turno.txt
           git add data
           git diff --cached --quiet || git commit -q -m "Histórico de vagas vistas"
           git add relatorios
@@ -66,13 +73,16 @@ jobs:
           fi
           git push
 
-      - name: Abrir issue com as vagas do dia
+      - name: Abrir issue com as vagas novas
         if: steps.salvar.outputs.relatorio_mudou == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           ARQUIVO="relatorios/${{ steps.hoje.outputs.dia }}.md"
-          if grep -q "Nenhuma vaga nova" "$ARQUIVO"; then exit 0; fi
+          # só o trecho que esta execução acrescentou
+          tail -n +$(( ${{ steps.hoje.outputs.linhas }} + 1 )) "$ARQUIVO" > novas.md
+          if grep -q "Nenhuma vaga nova" novas.md; then exit 0; fi
+          if [ "${{ steps.hoje.outputs.turno }}" = "manha" ]; then HORA=8h; else HORA=17h; fi
           # O GitHub aceita até 65 mil caracteres no corpo da issue
-          { head -c 60000 "$ARQUIVO"; echo; echo; echo "Relatório completo: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/$ARQUIVO"; } > corpo.md
-          gh issue create --title "Vagas de ${{ steps.hoje.outputs.dia }}" --body-file corpo.md
+          { head -c 60000 novas.md; echo; echo; echo "Relatório completo: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/$ARQUIVO"; } > corpo.md
+          gh issue create --title "Vagas de ${{ steps.hoje.outputs.dia }} ($HORA)" --body-file corpo.md

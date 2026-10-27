@@ -27,9 +27,10 @@ public class LeitorAlertaEmail {
 
     /** Site → padrão de caminho/consulta que identifica o link de uma vaga. */
     private static final Map<String, Pattern> LINKS_DE_VAGA = Map.of(
-            "indeed", Pattern.compile("(rc/clk|viewjob|pagead/clk|[?&]jk=)"),
+            // os e-mails usam links de rastreamento de clique (engage.indeed.com/f/..., .../trc/...)
+            "indeed", Pattern.compile("(rc/clk|viewjob|pagead/clk|[?&]jk=|engage\\.indeed\\.com/f/)"),
             "glassdoor", Pattern.compile("(joblisting|job-listing|/partner/|[?&]jl=)", Pattern.CASE_INSENSITIVE),
-            "programathor", Pattern.compile("/jobs/\\d+"),
+            "programathor", Pattern.compile("(/jobs/\\d+|/trc/)"),
             "jobbol", Pattern.compile("/vaga"));
     private static final Pattern LINK_GENERICO = Pattern.compile("(vaga|job)", Pattern.CASE_INSENSITIVE);
     private static final Pattern TEXTO_DE_NAVEGACAO = Pattern.compile(

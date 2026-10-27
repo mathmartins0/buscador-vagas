@@ -60,6 +60,21 @@ class LeitorAlertaEmailTest {
     }
 
     @Test
+    void aceitaLinksDeRastreamentoDoResumoDoProgramathor() {
+        String html = """
+                <table><tr><td><a href="https://corp1.programathor.com.br/trc/c/abc123">Desenvolvedor Java Pleno</a>
+                  <p>Acme · Remoto · PJ</p></td></tr>
+                <tr><td><a href="https://corp1.programathor.com.br/trc/c/zzz">Ver todas as vagas</a></td></tr></table>
+                """;
+
+        List<Vaga> vagas = leitor.ler("ProgramaThor <contato@programathor.com.br>",
+                "Resumo Semanal: 3 oportunidade(s) combina(m) com seu perfil", html, hoje);
+
+        assertEquals(1, vagas.size());
+        assertEquals("Desenvolvedor Java Pleno", vagas.getFirst().titulo());
+    }
+
+    @Test
     void identificaOSitePeloRemetente() {
         assertEquals("glassdoor", LeitorAlertaEmail.site("Glassdoor Jobs <noreply@glassdoor.com>"));
         assertEquals("exemplo.com", LeitorAlertaEmail.site("vagas@exemplo.com"));

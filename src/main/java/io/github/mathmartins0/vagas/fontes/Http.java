@@ -35,9 +35,9 @@ final class Http {
                 .GET();
         cabecalhos.forEach(requisicao::header);
         HttpResponse<String> resposta = CLIENTE.send(requisicao.build(), HttpResponse.BodyHandlers.ofString());
-        if (resposta.statusCode() == 429) {
-            // "muitas requisições": espera um pouco e tenta uma vez de novo
-            Thread.sleep(20_000);
+        // "muitas requisições": espera e tenta de novo, até duas vezes
+        for (int espera = 20_000; resposta.statusCode() == 429 && espera <= 40_000; espera *= 2) {
+            Thread.sleep(espera);
             resposta = CLIENTE.send(requisicao.build(), HttpResponse.BodyHandlers.ofString());
         }
         if (resposta.statusCode() != 200) {

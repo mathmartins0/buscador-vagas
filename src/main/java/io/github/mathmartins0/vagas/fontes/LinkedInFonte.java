@@ -46,21 +46,30 @@ public class LinkedInFonte implements FonteVagas {
     public List<Vaga> buscar(String termo) throws IOException, InterruptedException {
         List<Vaga> vagas = new ArrayList<>();
         for (int pagina = 0; pagina < PAGINAS; pagina++) {
+            // o LinkedIn bloqueia (HTTP 429) quando as buscas vêm muito seguidas
+            Thread.sleep(4000);
             String url = BUSCA.formatted(geoId, URLEncoder.encode(termo, StandardCharsets.UTF_8), pagina * POR_PAGINA)
                     + (apenasRemoto ? "&f_WT=2" : "");
-            List<Vaga> encontradas = converter(Http.get(url));
+            List<Vaga> encontradas;
+            try {
+                encontradas = converter(Http.get(url));
+            } catch (IOException e) {
+                if (vagas.isEmpty()) {
+                    throw e;
+                }
+                break; // fica com o que veio da primeira página
+            }
             vagas.addAll(encontradas);
             if (encontradas.size() < POR_PAGINA) {
                 break;
             }
-            Thread.sleep(1000);
         }
         return vagas;
     }
 
     @Override
     public Vaga detalhar(Vaga vaga) throws IOException, InterruptedException {
-        Thread.sleep(800);
+        Thread.sleep(1500);
         return completar(vaga, Http.get(DETALHE + vaga.id()));
     }
 

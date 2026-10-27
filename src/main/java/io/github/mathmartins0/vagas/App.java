@@ -25,6 +25,11 @@ import java.util.TreeMap;
  */
 public class App {
 
+    private static String definida(String variavel) {
+        String valor = System.getenv(variavel);
+        return valor == null || valor.isBlank() ? "vazio" : "ok";
+    }
+
     public static void main(String[] args) throws Exception {
         Config config = Config.carregar(Path.of(args.length > 0 ? args[0] : "config.json"));
         LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
@@ -44,7 +49,8 @@ public class App {
         if (alertas != null) {
             fontes.add(alertas);
         } else {
-            System.out.println("Alertas por e-mail desligados (faltam EMAIL_USUARIO e EMAIL_SENHA_APP).");
+            System.out.printf("Alertas por e-mail desligados (EMAIL_USUARIO %s, EMAIL_SENHA_APP %s).%n",
+                    definida("EMAIL_USUARIO"), definida("EMAIL_SENHA_APP"));
         }
 
         Map<String, Vaga> encontradas = new LinkedHashMap<>();

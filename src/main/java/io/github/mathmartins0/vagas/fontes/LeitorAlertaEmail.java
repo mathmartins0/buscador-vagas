@@ -75,6 +75,25 @@ public class LeitorAlertaEmail {
         return new ArrayList<>(vagas.values());
     }
 
+    /** Diagnóstico: host + primeiro pedaço do caminho de cada link, com contagem, e quantos têm texto. */
+    static String formatoDosLinks(String html) {
+        Map<String, Integer> formatos = new java.util.TreeMap<>();
+        int comTexto = 0;
+        for (Element link : Jsoup.parse(html).select("a[href]")) {
+            try {
+                URI uri = URI.create(link.attr("href").trim().replace(" ", "%20"));
+                String caminho = uri.getPath() == null ? "" : uri.getPath().replaceAll("^(/[^/]*(/[^/]*)?).*", "$1");
+                formatos.merge(uri.getHost() + caminho.replaceAll("\\d{3,}", "N"), 1, Integer::sum);
+            } catch (IllegalArgumentException e) {
+                formatos.merge("(inválido)", 1, Integer::sum);
+            }
+            if (link.text().trim().length() >= 6) {
+                comTexto++;
+            }
+        }
+        return comTexto + " com texto; " + formatos;
+    }
+
     /** Sobe a partir do link até o maior bloco que ainda é só desta vaga. */
     private static String bloco(Element link) {
         Element atual = link;

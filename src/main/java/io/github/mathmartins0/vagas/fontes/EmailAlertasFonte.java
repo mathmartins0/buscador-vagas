@@ -91,6 +91,11 @@ public class EmailAlertasFonte implements FonteVagas {
                             : mensagem.getReceivedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                     List<Vaga> doEmail = leitor.ler(remetente, mensagem.getSubject(), html, recebido);
                     System.out.printf("  e-mail de %s: %d vagas%n", LeitorAlertaEmail.site(remetente), doEmail.size());
+                    if (doEmail.isEmpty()) {
+                        // Só o assunto e o formato dos links (sem parâmetros), para ajustar a leitura sem expor o e-mail
+                        System.out.printf("    assunto: %s%n    links: %s%n", resumir(mensagem.getSubject()),
+                                LeitorAlertaEmail.formatoDosLinks(html));
+                    }
                     vagas.addAll(doEmail);
                 }
             } finally {
@@ -100,6 +105,11 @@ public class EmailAlertasFonte implements FonteVagas {
             throw new IOException("não consegui ler o Gmail: " + e.getMessage(), e);
         }
         return vagas;
+    }
+
+    private static String resumir(String assunto) {
+        String a = assunto == null ? "" : assunto.replaceAll("[\\w.+-]+@[\\w.-]+", "<e-mail>");
+        return a.length() > 90 ? a.substring(0, 90) + "…" : a;
     }
 
     private static String remetente(Message mensagem) throws MessagingException {

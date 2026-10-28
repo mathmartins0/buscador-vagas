@@ -3,12 +3,12 @@ name: Buscar vagas
 on:
   schedule:
     # Segunda a sábado, às 8h e às 17h de Brasília (UTC-3).
-    # O GitHub às vezes atrasa ou pula horários agendados, então cada turno tem um horário reserva
-    # 40 minutos depois; se o turno já rodou, o reserva não faz nada.
-    - cron: "2 11 * * 1-6"  # 8h02
-    - cron: "42 11 * * 1-6" # 8h42 (reserva)
-    - cron: "2 20 * * 1-6"  # 17h02
-    - cron: "42 20 * * 1-6" # 17h42 (reserva)
+    # O GitHub costuma atrasar horas ou simplesmente pular agendamentos quando está sobrecarregado.
+    # Por isso cada turno tem tentativas de hora em hora (até 12h e até 21h); a primeira que rodar
+    # faz a busca e as outras do mesmo turno não fazem nada.
+    - cron: "2 11-15 * * 1-6" # 8h02, 9h02, 10h02, 11h02, 12h02
+    - cron: "2 20-23 * * 1-6" # 17h02, 18h02, 19h02, 20h02
+    - cron: "2 0 * * 0,2-6" # 21h02 (já é o dia seguinte em UTC)
   workflow_dispatch: # botão "Run workflow" para rodar na hora
 
 permissions:

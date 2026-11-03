@@ -63,7 +63,10 @@ jobs:
         run: |
           git config user.name "buscador-vagas"
           git config user.email "actions@users.noreply.github.com"
-          echo "${{ steps.hoje.outputs.dia }} ${{ steps.hoje.outputs.turno }}" > data/ultimo-turno.txt
+          # só execuções agendadas marcam o turno; rodar na mão não impede a próxima agendada
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "${{ steps.hoje.outputs.dia }} ${{ steps.hoje.outputs.turno }}" > data/ultimo-turno.txt
+          fi
           git add data
           git diff --cached --quiet || git commit -q -m "Histórico de vagas vistas"
           git add relatorios

@@ -3,7 +3,8 @@ package io.github.mathmartins0.vagas;
 /** Tipo de vaga que o bot procura. */
 public enum Categoria {
     DEV("Dev Java"),
-    SUPORTE("Suporte/Helpdesk");
+    SUPORTE("Suporte/Helpdesk"),
+    QA("QA/Testes");
 
     private final String rotulo;
 

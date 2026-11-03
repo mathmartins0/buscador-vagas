@@ -78,8 +78,10 @@ public class App {
         Historico historico = new Historico(Path.of("data/vistas.json"));
         Pontuador pontuador = new Pontuador(config.perfil().habilidades(),
                 config.perfil().habilidadesSuporte() == null ? List.of() : config.perfil().habilidadesSuporte(),
+                config.perfil().habilidadesQa() == null ? List.of() : config.perfil().habilidadesQa(),
                 config.apenasRemoto(), config.apenasPj(), config.suporteNoturnoExigePj());
-        GeradorMensagem gerador = new GeradorMensagem(config.perfil(), config.modeloMensagem(), config.modeloMensagemSuporte());
+        GeradorMensagem gerador = new GeradorMensagem(config.perfil(), config.modeloMensagem(), config.modeloMensagemSuporte(),
+                config.modeloMensagemQa());
         LocalDate limite = hoje.minusDays(config.diasMaximos());
 
         List<Relatorio.Item> itens = new ArrayList<>();

@@ -11,6 +11,7 @@ import java.util.List;
 public record Config(
         List<String> termosBusca,
         List<String> termosBuscaSuporte,
+        List<String> termosBuscaQa,
         boolean apenasRemoto,
         boolean apenasPj,
         boolean suporteNoturnoExigePj,
@@ -21,7 +22,8 @@ public record Config(
         AlertasEmail alertasEmail,
         Perfil perfil,
         String modeloMensagem,
-        String modeloMensagemSuporte) {
+        String modeloMensagemSuporte,
+        String modeloMensagemQa) {
 
     /** De quem são os e-mails de alerta (trecho do endereço) e quantos dias para trás ler. */
     public record AlertasEmail(List<String> remetentes, int dias) {
@@ -34,14 +36,18 @@ public record Config(
             String linkedin,
             String github,
             List<String> habilidades,
-            List<String> habilidadesSuporte) {
+            List<String> habilidadesSuporte,
+            List<String> habilidadesQa) {
     }
 
-    /** Termos de dev + suporte, sem repetir. */
+    /** Termos de dev + suporte + QA, sem repetir. */
     public List<String> todosOsTermos() {
         java.util.LinkedHashSet<String> termos = new java.util.LinkedHashSet<>(termosBusca);
         if (termosBuscaSuporte != null) {
             termos.addAll(termosBuscaSuporte);
+        }
+        if (termosBuscaQa != null) {
+            termos.addAll(termosBuscaQa);
         }
         return List.copyOf(termos);
     }

@@ -1,6 +1,6 @@
 # Buscador de Vagas
 
-Bot em Java 21 que procura vagas de desenvolvedor Java e de suporte técnico/helpdesk, dá uma nota de aderência (PJ, pleno, remoto, stack) e prepara uma mensagem de candidatura personalizada para cada uma. Ele **não se candidata sozinho**: você abre o link, revisa a mensagem e envia. Assim nenhuma conta corre risco de bloqueio por automação.
+Bot em Java 21 que procura vagas de desenvolvedor Java, de QA/testes e de suporte técnico/helpdesk, dá uma nota de aderência (PJ, pleno, remoto, stack) e prepara uma mensagem de candidatura personalizada para cada uma. Ele **não se candidata sozinho**: você abre o link, revisa a mensagem e envia. Assim nenhuma conta corre risco de bloqueio por automação.
 
 ## Como funciona
 
@@ -18,7 +18,7 @@ Bot em Java 21 que procura vagas de desenvolvedor Java e de suporte técnico/hel
    Indeed, Glassdoor, Programathor e Jobbol bloqueiam acesso automatizado. Para eles, o bot lê os **alertas de vaga que chegam no seu Gmail** (veja abaixo).
 
 2. Remove repetidas, vagas já mostradas antes (`data/vistas.json`) e vagas mais antigas que `diasMaximos`.
-3. Classifica cada vaga como **Dev Java** (Java no título/tags, Spring na descrição, ou Java citado mais de uma vez) ou **Suporte/Helpdesk** (helpdesk/service desk/suporte técnico no título, ou "suporte" com contexto de TI), e marca as **noturnas** (noturno, madrugada, turno da noite, horários como 22h às 6h).
+3. Classifica cada vaga como **QA/Testes** (QA, tester, analista de testes, SDET no título; segue as mesmas regras de dev), **Dev Java** (Java no título/tags, Spring na descrição, ou Java citado mais de uma vez) ou **Suporte/Helpdesk** (helpdesk/service desk/suporte técnico no título, ou "suporte" com contexto de TI), e marca as **noturnas** (noturno, madrugada, turno da noite, horários como 22h às 6h).
 4. **Descarta** a vaga se:
    - não é de nenhuma das duas áreas;
    - é estágio/trainee, ou sênior e acima (especialista, lead, staff, coordenador, N3...) sem citar pleno ou júnior;
@@ -29,7 +29,7 @@ Bot em Java 21 que procura vagas de desenvolvedor Java e de suporte técnico/hel
 
 | Critério | Pontos |
 |---|---:|
-| Título de Java/backend, ou vaga de suporte | +20 |
+| Título de Java/backend, ou vaga de QA ou de suporte | +20 |
 | Aceita PJ | +30 |
 | Só CLT (quando `apenasPj` está desligado) | −30 |
 | Pleno (ou N2) / júnior (ou N1) / nível não informado | +20 / +15 / +10 |
@@ -70,15 +70,15 @@ Como cada site monta o e-mail do seu jeito, a leitura pega os links que apontam 
 
 Tudo fica no `config.json`:
 
-- `termosBusca` e `termosBuscaSuporte`: o que pesquisar para dev e para suporte.
+- `termosBusca`, `termosBuscaQa` e `termosBuscaSuporte`: o que pesquisar para dev, QA e suporte.
 - `suporteNoturnoExigePj`: `true` para exigir PJ também nas vagas noturnas de suporte.
 - `apenasRemoto`: `true` para receber só vagas 100% remotas.
 - `apenasPj`: `true` para receber só vagas que dizem aceitar PJ.
 - `fontesDesligadas`: nomes de fontes para não consultar, ex.: `["LinkedIn", "Gupy"]`.
 - `linkedinGeoId`: região da busca no LinkedIn (`106057199` = Brasil).
 - `notaMinima`: suba para receber menos vagas e mais certeiras.
-- `perfil.habilidades` e `perfil.habilidadesSuporte`: usadas na nota e na mensagem de cada área.
-- `modeloMensagem` e `modeloMensagemSuporte`: o texto da mensagem de cada área. Aceitam `{empresa}`, `{titulo}`, `{habilidades}`, `{turno}` (vira ", inclusive no turno da noite" nas vagas noturnas), `{nome}`, `{email}`, `{telefone}`, `{linkedin}` e `{github}`.
+- `perfil.habilidades`, `perfil.habilidadesQa` e `perfil.habilidadesSuporte`: usadas na nota e na mensagem de cada área.
+- `modeloMensagem`, `modeloMensagemQa` e `modeloMensagemSuporte`: o texto da mensagem de cada área. Aceitam `{empresa}`, `{titulo}`, `{habilidades}`, `{turno}` (vira ", inclusive no turno da noite" nas vagas noturnas), `{nome}`, `{email}`, `{telefone}`, `{linkedin}` e `{github}`.
 
 Para adicionar outra fonte de vagas, implemente `FonteVagas` e registre na lista de `App`.
 

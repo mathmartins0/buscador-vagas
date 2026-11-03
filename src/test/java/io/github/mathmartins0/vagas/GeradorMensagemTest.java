@@ -10,7 +10,7 @@ class GeradorMensagemTest {
 
     private final Config.Perfil perfil = new Config.Perfil(
             "Matheus", "m@x.com", "12 9999", "linkedin.com/in/m", "github.com/m", List.of("Java", "Docker"),
-            List.of("Windows", "GLPI"));
+            List.of("Windows", "GLPI"), List.of("Postman", "SQL"));
 
     @Test
     void preencheOModeloComAsHabilidadesEmComum() {
@@ -36,5 +36,14 @@ class GeradorMensagemTest {
         Avaliacao avaliacao = new Avaliacao(70, false, List.of(), List.of(), Categoria.SUPORTE, true);
 
         assertEquals("SUP Windows e GLPI PJ, inclusive no turno da noite", gerador.gerar(vaga, avaliacao));
+    }
+
+    @Test
+    void vagaDeQaUsaOModeloDeQa() {
+        GeradorMensagem gerador = new GeradorMensagem(perfil, "DEV {habilidades}", "SUP {habilidades}", "QA {habilidades}");
+        Vaga vaga = new Vaga("1", "T", "Analista de QA Pleno", "", "", "", "", "", "", null);
+        Avaliacao avaliacao = new Avaliacao(70, false, List.of(), List.of(), Categoria.QA, false);
+
+        assertEquals("QA Postman e SQL", gerador.gerar(vaga, avaliacao));
     }
 }

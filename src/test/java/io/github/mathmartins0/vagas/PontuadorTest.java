@@ -127,7 +127,7 @@ class PontuadorTest {
 
     @Test
     void suporteSemContextoDeTiNaoContaComoSuporte() {
-        assertEquals("não é vaga de Java nem de suporte",
+        assertEquals("não é vaga de Java, QA nem suporte",
                 motivo(comSuporte.avaliar(vaga("Suporte ao Cliente PJ", "Atendimento a lojistas por chat", "", "remoto"))));
     }
 
@@ -162,5 +162,27 @@ class PontuadorTest {
         assertFalse(comSuporte.avaliar(vaga("Helpdesk PJ", "Das 8h às 18h", "", "remoto")).noturna());
         assertFalse(comSuporte.avaliar(vaga("Helpdesk PJ", "Das 10h às 19h", "", "remoto")).noturna());
         assertTrue(comSuporte.avaliar(vaga("Helpdesk PJ", "Plantão 00h as 06h", "", "remoto")).noturna());
+    }
+
+    private final Pontuador comQa = new Pontuador(List.of("Spring Boot"), List.of("Windows"), List.of("Postman", "SQL"),
+            true, true, false);
+
+    @Test
+    void reconheceVagaDeQaJuniorEPlenoPj() {
+        Avaliacao a = comQa.avaliar(vaga("Analista de QA Pleno", "Testes de API com Postman e Java. Contrato PJ", "", "remoto"));
+
+        assertFalse(a.descartada());
+        assertEquals(Categoria.QA, a.categoria()); // mesmo citando Java, é vaga de QA
+        assertTrue(a.motivos().contains("+20 vaga de QA/testes"));
+        assertEquals(List.of("Postman"), a.habilidadesEmComum());
+        assertEquals(Categoria.QA, comQa.avaliar(vaga("Analista de Testes Jr", "PJ", "", "remoto")).categoria());
+    }
+
+    @Test
+    void qaSegueAsMesmasRegrasDeDev() {
+        assertEquals("não diz que aceita PJ", motivo(comQa.avaliar(vaga("QA Júnior", "", "", "remoto"))));
+        assertEquals("não diz que aceita PJ", motivo(comQa.avaliar(vaga("QA Júnior", "Turno noturno", "", "remoto"))));
+        assertEquals("vaga sênior ou acima", motivo(comQa.avaliar(vaga("QA Sênior PJ", "", "", "remoto"))));
+        assertTrue(comQa.avaliar(vaga("QA Pleno PJ", "Modelo híbrido", "", "remoto")).descartada());
     }
 }

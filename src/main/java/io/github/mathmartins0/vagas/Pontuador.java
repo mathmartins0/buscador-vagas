@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 /**
  * Filtra e dá nota de aderência para a vaga.
- * Primeiro decide se é vaga de dev Java ou de suporte técnico/helpdesk e descarta o que não serve
+ * Primeiro decide se é vaga de dev Java, de QA/testes ou de suporte técnico/helpdesk e descarta o que não serve
  * (outra área, sênior, não remota, sem PJ explícito); o que sobra é ordenado por nível, stack,
  * sinais de PJ e turno noturno.
  */
@@ -23,6 +23,10 @@ public class Pontuador {
     private static final String[] CARGOS_HELPDESK = {
             "helpdesk", "help desk", "help-desk", "service desk", "servicedesk", "suporte tecnico",
             "suporte de ti", "suporte ti", "tecnico de ti", "tecnico de informatica", "tecnico em informatica"};
+    private static final String[] CARGOS_QA = {
+            "qa", "quality assurance", "tester", "testador", "sdet", "analista de testes", "analista de teste",
+            "analista de qualidade de software", "engenheiro de testes", "engenheira de testes",
+            "automacao de testes", "test analyst", "test engineer", "testes automatizados", "qualidade de software"};
     private static final String[] CONTEXTO_TI = {
             "ti", "tecnico", "tecnica", "informatica", "n1", "n2", "n3", "nivel 1", "nivel 2", "windows", "linux",
             "redes", "hardware", "chamados", "glpi", "itil", "active directory", "office 365", "infraestrutura"};
@@ -35,21 +39,28 @@ public class Pontuador {
 
     private final List<String> habilidadesDev;
     private final List<String> habilidadesSuporte;
+    private final List<String> habilidadesQa;
     private final boolean apenasRemoto;
     private final boolean apenasPj;
     private final boolean suporteNoturnoExigePj;
 
-    public Pontuador(List<String> habilidadesDev, List<String> habilidadesSuporte, boolean apenasRemoto,
-                     boolean apenasPj, boolean suporteNoturnoExigePj) {
+    public Pontuador(List<String> habilidadesDev, List<String> habilidadesSuporte, List<String> habilidadesQa,
+                     boolean apenasRemoto, boolean apenasPj, boolean suporteNoturnoExigePj) {
         this.habilidadesDev = habilidadesDev;
         this.habilidadesSuporte = habilidadesSuporte;
+        this.habilidadesQa = habilidadesQa;
         this.apenasRemoto = apenasRemoto;
         this.apenasPj = apenasPj;
         this.suporteNoturnoExigePj = suporteNoturnoExigePj;
     }
 
     public Pontuador(List<String> habilidades, boolean apenasRemoto, boolean apenasPj) {
-        this(habilidades, List.of(), apenasRemoto, apenasPj, true);
+        this(habilidades, List.of(), List.of(), apenasRemoto, apenasPj, true);
+    }
+
+    public Pontuador(List<String> habilidadesDev, List<String> habilidadesSuporte, boolean apenasRemoto,
+                     boolean apenasPj, boolean suporteNoturnoExigePj) {
+        this(habilidadesDev, habilidadesSuporte, List.of(), apenasRemoto, apenasPj, suporteNoturnoExigePj);
     }
 
     public Avaliacao avaliar(Vaga vaga) {
@@ -63,7 +74,7 @@ public class Pontuador {
 
         Categoria categoria = categoria(titulo, cabecalho, descricao, tudo);
         if (categoria == null) {
-            return descartar("não é vaga de Java nem de suporte");
+            return descartar("não é vaga de Java, QA nem suporte");
         }
         if (Texto.contem(titulo, "estagio", "estagiario", "trainee", "aprendiz")) {
             return descartar("vaga de estágio ou trainee");
@@ -101,6 +112,9 @@ public class Pontuador {
         if (categoria == Categoria.DEV && Texto.contem(titulo, "java", "backend", "back-end", "back end", "spring")) {
             nota += 20;
             motivos.add("+20 título de Java/backend");
+        } else if (categoria == Categoria.QA) {
+            nota += 20;
+            motivos.add("+20 vaga de QA/testes");
         } else if (categoria == Categoria.SUPORTE) {
             nota += 20;
             motivos.add("+20 vaga de suporte técnico/helpdesk");
@@ -136,7 +150,12 @@ public class Pontuador {
         }
 
         List<String> emComum = new ArrayList<>();
-        for (String habilidade : categoria == Categoria.DEV ? habilidadesDev : habilidadesSuporte) {
+        List<String> habilidades = switch (categoria) {
+            case DEV -> habilidadesDev;
+            case QA -> habilidadesQa;
+            case SUPORTE -> habilidadesSuporte;
+        };
+        for (String habilidade : habilidades) {
             if (Texto.contem(tudo, habilidade)) {
                 emComum.add(habilidade);
             }
@@ -151,11 +170,15 @@ public class Pontuador {
     }
 
     /**
+     * QA: cargo de QA/testes no título (vem antes de dev, porque "QA com Java" é vaga de QA).
      * Dev: Java no título/tags, Spring na descrição, ou Java citado mais de uma vez na descrição
      * (evita vagas que só citam Java de passagem, como "Minecraft Java Edition").
      * Suporte: helpdesk/service desk no título, ou "suporte" no título com contexto de TI.
      */
     private static Categoria categoria(String titulo, String cabecalho, String descricao, String tudo) {
+        if (Texto.contem(titulo, CARGOS_QA)) {
+            return Categoria.QA;
+        }
         if (Texto.contem(cabecalho, "java", "spring", "spring boot")
                 || Texto.contem(descricao, "spring", "spring boot")
                 || Texto.contar(descricao, "java") >= 2) {

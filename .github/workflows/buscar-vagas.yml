@@ -28,13 +28,20 @@ jobs:
         id: hoje
         run: |
           DIA=$(TZ=America/Sao_Paulo date +%F)
-          if [ "$(TZ=America/Sao_Paulo date +%-H)" -lt 13 ]; then TURNO=manha; else TURNO=tarde; fi
+          HORA=$(TZ=America/Sao_Paulo date +%-H)
+          if [ "$HORA" -lt 13 ]; then TURNO=manha; else TURNO=tarde; fi
           echo "dia=$DIA" >> "$GITHUB_OUTPUT"
           echo "turno=$TURNO" >> "$GITHUB_OUTPUT"
           # linhas que o relatório do dia já tinha, para a issue mostrar só o que for novo
           echo "linhas=$(cat "relatorios/$DIA.md" 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
           if [ "${{ github.event_name }}" = "schedule" ] && [ "$(cat data/ultimo-turno.txt 2>/dev/null)" = "$DIA $TURNO" ]; then
             echo "O turno $TURNO de $DIA já rodou."
+            echo "pular=true" >> "$GITHUB_OUTPUT"
+          fi
+          # o GitHub às vezes dispara o agendamento da noite só de madrugada; não deixa isso
+          # gastar o turno da manhã seguinte
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$HORA" -lt 7 ]; then
+            echo "Agendamento atrasado para a madrugada; fica para o turno das 8h."
             echo "pular=true" >> "$GITHUB_OUTPUT"
           fi
 

@@ -58,6 +58,7 @@ jobs:
             git commit -m "Vagas de ${{ steps.hoje.outputs.dia }}"
             echo "relatorio_mudou=true" >> "$GITHUB_OUTPUT"
           fi
+          git pull -q --rebase origin main
           git push
 
       - name: Abrir issue com as vagas novas

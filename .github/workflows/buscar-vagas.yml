@@ -1,15 +1,10 @@
 name: Buscar vagas
 
 on:
-  schedule:
-    # Segunda a sábado, às 8h e às 17h de Brasília (UTC-3).
-    # O GitHub costuma atrasar horas ou simplesmente pular agendamentos quando está sobrecarregado.
-    # Por isso cada turno tem tentativas de hora em hora (até 12h e até 21h); a primeira que rodar
-    # faz a busca e as outras do mesmo turno não fazem nada.
-    - cron: "2 11-15 * * 1-6" # 8h02, 9h02, 10h02, 11h02, 12h02
-    - cron: "2 20-23 * * 1-6" # 17h02, 18h02, 19h02, 20h02
-    - cron: "2 0 * * 0,2-6" # 21h02 (já é o dia seguinte em UTC)
-  workflow_dispatch: # botão "Run workflow" para rodar na hora
+  # Quem dispara é o cron-job.org (segunda a sábado, 8h e 17h de Brasília), chamando a API do
+  # GitHub com um token que só pode rodar este workflow. O agendamento do próprio GitHub atrasava
+  # horas ou nem disparava.
+  workflow_dispatch: # também dá para rodar na hora pelo botão "Run workflow"
 
 permissions:
   contents: write
@@ -24,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Ver se este turno já rodou
+      - name: Dia e turno
         id: hoje
         run: |
           DIA=$(TZ=America/Sao_Paulo date +%F)
@@ -34,24 +29,17 @@ jobs:
           echo "turno=$TURNO" >> "$GITHUB_OUTPUT"
           # linhas que o relatório do dia já tinha, para a issue mostrar só o que for novo
           echo "linhas=$(cat "relatorios/$DIA.md" 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(cat data/ultimo-turno.txt 2>/dev/null)" = "$DIA $TURNO" ]; then
-            echo "O turno $TURNO de $DIA já rodou."
-            echo "pular=true" >> "$GITHUB_OUTPUT"
-          fi
 
       - uses: actions/setup-java@v4
-        if: steps.hoje.outputs.pular != 'true'
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
 
       - name: Compilar e testar
-        if: steps.hoje.outputs.pular != 'true'
         run: mvn -B -q package
 
       - name: Buscar vagas
-        if: steps.hoje.outputs.pular != 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           EMAIL_USUARIO: ${{ secrets.EMAIL_USUARIO }}
@@ -60,14 +48,9 @@ jobs:
 
       - name: Salvar relatório no repositório
         id: salvar
-        if: steps.hoje.outputs.pular != 'true'
         run: |
           git config user.name "buscador-vagas"
           git config user.email "actions@users.noreply.github.com"
-          # só execuções agendadas marcam o turno; rodar na mão não impede a próxima agendada
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            echo "${{ steps.hoje.outputs.dia }} ${{ steps.hoje.outputs.turno }}" > data/ultimo-turno.txt
-          fi
           git add data
           git diff --cached --quiet || git commit -q -m "Histórico de vagas vistas"
           git add relatorios

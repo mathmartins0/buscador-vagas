@@ -50,7 +50,7 @@ java -jar target/buscador-vagas.jar config.json
 
 ## Rodar todo dia no GitHub (sem deixar o computador ligado)
 
-O workflow `.github/workflows/buscar-vagas.yml` roda de segunda a sábado, às 8h e às 17h de Brasília (o GitHub costuma atrasar ou pular agendamentos, então cada turno tem tentativas de hora em hora até 12h e até 21h; só a primeira faz a busca). Ele salva o relatório do dia no repositório e abre uma **issue** com as vagas novas de cada turno, e o GitHub te avisa por e-mail. Para rodar na hora: aba **Actions** → **Buscar vagas** → **Run workflow**.
+O workflow `.github/workflows/buscar-vagas.yml` roda de segunda a sábado, às 8h e às 17h de Brasília , disparado pelo [cron-job.org](https://cron-job.org) com um token do GitHub que só tem permissão de rodar workflows deste repositório (o agendamento do próprio GitHub atrasava horas ou não disparava). Ele salva o relatório do dia no repositório e abre uma **issue** com as vagas novas de cada turno, e o GitHub te avisa por e-mail. Para rodar na hora: aba **Actions** → **Buscar vagas** → **Run workflow**.
 
 ## Alertas por e-mail (Indeed, Glassdoor, Programathor, Jobbol)
 

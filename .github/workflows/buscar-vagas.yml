@@ -38,12 +38,6 @@ jobs:
             echo "O turno $TURNO de $DIA já rodou."
             echo "pular=true" >> "$GITHUB_OUTPUT"
           fi
-          # o GitHub às vezes dispara o agendamento da noite só de madrugada; não deixa isso
-          # gastar o turno da manhã seguinte
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "$HORA" -lt 7 ]; then
-            echo "Agendamento atrasado para a madrugada; fica para o turno das 8h."
-            echo "pular=true" >> "$GITHUB_OUTPUT"
-          fi
 
       - uses: actions/setup-java@v4
         if: steps.hoje.outputs.pular != 'true'

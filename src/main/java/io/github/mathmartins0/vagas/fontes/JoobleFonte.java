@@ -11,18 +11,23 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Jooble (br.jooble.org), agregador que junta vagas de milhares de sites brasileiros.
  * Precisa de uma chave grátis na variável JOOBLE_CHAVE. A cota de requisições da chave é pequena,
  * então a busca usa só os poucos termos de "jooble.termos" no config, em vez de todos os termos.
- * A API só devolve um trecho da descrição; por isso o termo buscado (ex.: "java pj remoto") vai junto
- * no campo de contrato, do mesmo jeito que nos alertas por e-mail.
+ * A API só devolve um trecho da descrição, e a busca do Jooble é "aproximada": para "java pj remoto"
+ * ela também devolve vendedor PJ presencial. Por isso o termo buscado não conta para nada; PJ, remoto e
+ * área precisam aparecer no título, no local ou no trecho da própria vaga.
  */
 public class JoobleFonte implements FonteVagas {
 
     private static final String URL = "https://br.jooble.org/api/";
     private static final int POR_PAGINA = 50;
+
+    private static final Pattern REMOTO = Pattern.compile(
+            "(?i)\\b(remot[oa]|home[ -]office|teletrabalho|remote|anywhere)\\b");
 
     private final ObjectMapper json = new ObjectMapper();
     private final String chave;
@@ -59,7 +64,7 @@ public class JoobleFonte implements FonteVagas {
             String corpo = json.writeValueAsString(Map.of(
                     "keywords", termo, "location", "Brasil", "page", 1, "ResultOnPage", POR_PAGINA));
             try {
-                List<Vaga> encontradas = converter(Http.postJson(URL + chave, corpo), termo);
+                List<Vaga> encontradas = converter(Http.postJson(URL + chave, corpo));
                 vagas.addAll(encontradas);
                 System.out.printf("  Jooble \"%s\": %d vagas%n", termo, encontradas.size());
             } catch (IOException e) {
@@ -71,19 +76,23 @@ public class JoobleFonte implements FonteVagas {
         return vagas;
     }
 
-    List<Vaga> converter(String corpo, String termo) throws IOException {
+    List<Vaga> converter(String corpo) throws IOException {
         List<Vaga> vagas = new ArrayList<>();
         for (JsonNode item : json.readTree(corpo).path("jobs")) {
+            String titulo = Jsoup.parse(item.path("title").asText()).text();
+            String local = item.path("location").asText("");
+            String trecho = Jsoup.parse(item.path("snippet").asText("")).text();
+            boolean remoto = REMOTO.matcher(titulo + " " + local + " " + trecho).find();
             vagas.add(new Vaga(
                     item.path("id").asText(),
                     nome(),
-                    Jsoup.parse(item.path("title").asText()).text(),
+                    titulo,
                     item.path("company").asText(""),
-                    item.path("location").asText(""),
-                    "",
-                    "busca Jooble: " + termo,
+                    local,
+                    remoto ? "remoto" : "",
+                    item.path("type").asText(""),
                     item.path("link").asText(),
-                    Jsoup.parse(item.path("snippet").asText("")).text(),
+                    trecho,
                     data(item.path("updated").asText())));
         }
         return vagas;

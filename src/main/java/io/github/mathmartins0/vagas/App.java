@@ -5,6 +5,7 @@ import io.github.mathmartins0.vagas.fontes.EmailAlertasFonte;
 import io.github.mathmartins0.vagas.fontes.FonteVagas;
 import io.github.mathmartins0.vagas.fontes.GupyFonte;
 import io.github.mathmartins0.vagas.fontes.InfoJobsFonte;
+import io.github.mathmartins0.vagas.fontes.JoobleFonte;
 import io.github.mathmartins0.vagas.fontes.LinkedInFonte;
 import io.github.mathmartins0.vagas.fontes.RemotarFonte;
 import io.github.mathmartins0.vagas.fontes.VagasComFonte;
@@ -51,6 +52,13 @@ public class App {
         } else {
             System.out.printf("Alertas por e-mail desligados (EMAIL_USUARIO %s, EMAIL_SENHA_APP %s).%n",
                     definida("EMAIL_USUARIO"), definida("EMAIL_SENHA_APP"));
+        }
+
+        JoobleFonte jooble = config.jooble() == null ? null : JoobleFonte.doAmbiente(config.jooble().termos());
+        if (jooble != null) {
+            fontes.add(jooble);
+        } else {
+            System.out.printf("Jooble desligado (JOOBLE_CHAVE %s).%n", definida("JOOBLE_CHAVE"));
         }
 
         Map<String, Vaga> encontradas = new LinkedHashMap<>();

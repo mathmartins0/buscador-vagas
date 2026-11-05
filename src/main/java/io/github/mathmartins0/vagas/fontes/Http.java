@@ -26,6 +26,22 @@ final class Http {
         return get(url, Map.of());
     }
 
+    /** POST com corpo JSON (sem repetir em caso de 429: quem usa costuma ter cota de requisições). */
+    static String postJson(String url, String corpo) throws IOException, InterruptedException {
+        HttpRequest requisicao = HttpRequest.newBuilder(URI.create(url))
+                .timeout(Duration.ofSeconds(30))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("User-Agent", NAVEGADOR)
+                .POST(HttpRequest.BodyPublishers.ofString(corpo))
+                .build();
+        HttpResponse<String> resposta = CLIENTE.send(requisicao, HttpResponse.BodyHandlers.ofString());
+        if (resposta.statusCode() != 200) {
+            throw new IOException("HTTP " + resposta.statusCode());
+        }
+        return resposta.body();
+    }
+
     static String get(String url, Map<String, String> cabecalhos) throws IOException, InterruptedException {
         HttpRequest.Builder requisicao = HttpRequest.newBuilder(URI.create(url))
                 .timeout(Duration.ofSeconds(30))

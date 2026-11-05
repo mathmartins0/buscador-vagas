@@ -20,6 +20,7 @@ public record Config(
         int notaMinima,
         int diasMaximos,
         AlertasEmail alertasEmail,
+        Jooble jooble,
         Perfil perfil,
         String modeloMensagem,
         String modeloMensagemSuporte,
@@ -27,6 +28,10 @@ public record Config(
 
     /** De quem são os e-mails de alerta (trecho do endereço) e quantos dias para trás ler. */
     public record AlertasEmail(List<String> remetentes, int dias) {
+    }
+
+    /** Termos buscados no Jooble (poucos, porque a chave tem cota de requisições). */
+    public record Jooble(List<String> termos) {
     }
 
     public record Perfil(

@@ -14,6 +14,7 @@ Bot em Java 21 que procura vagas de desenvolvedor Java, de QA/testes e de suport
 | [InfoJobs](https://www.infojobs.com.br) | página de busca | "Prestador de Serviços (PJ)" e "Home office" |
 | [Gupy](https://portal.gupy.io) | página de busca | tipo de contrato e modalidade |
 | [LinkedIn](https://www.linkedin.com/jobs) | busca pública, sem login | filtro "Remoto" + descrição da vaga |
+| [Jooble](https://br.jooble.org) | API (chave grátis) | agregador de milhares de sites; só traz um trecho da descrição, então PJ e remoto vêm do termo buscado |
 
    Indeed, Glassdoor, Programathor e Jobbol bloqueiam acesso automatizado. Para eles, o bot lê os **alertas de vaga que chegam no seu Gmail** (veja abaixo).
 
@@ -65,6 +66,15 @@ O bot não acessa esses sites; ele lê, **só para leitura**, os e-mails de aler
 Os segredos não aparecem nos logs nem para quem vê o repositório. Sem eles, essa fonte fica desligada. Em `config.json`, `alertasEmail.remetentes` diz de quem são os e-mails lidos e `alertasEmail.dias` quantos dias para trás.
 
 Como cada site monta o e-mail do seu jeito, a leitura pega os links que apontam para vagas e o texto em volta (empresa, local, trecho). Se algum site vier com 0 vagas no log, o formato do e-mail dele precisa de ajuste.
+
+## Jooble (agregador de vagas)
+
+O Jooble junta vagas de sites de carreira de empresas, portais menores e sistemas de recrutamento (Inhire, Kenoby, Solides...).
+
+1. Peça a chave grátis em <https://br.jooble.org/api/about> (no campo de site, pode usar o link deste repositório).
+2. Guarde como segredo do repositório com o nome `JOOBLE_CHAVE`.
+
+A chave tem cota pequena de requisições, então o bot só busca os termos de `jooble.termos` no `config.json` (um pedido por termo a cada execução). A API devolve só um trecho da descrição: o termo buscado (ex.: `java pj remoto`) aparece no campo de contrato e conta para os filtros de PJ e remoto, então confira a vaga antes de se candidatar.
 
 ## Personalizar
 

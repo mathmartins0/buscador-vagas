@@ -44,6 +44,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           EMAIL_USUARIO: ${{ secrets.EMAIL_USUARIO }}
           EMAIL_SENHA_APP: ${{ secrets.EMAIL_SENHA_APP }}
+          JOOBLE_CHAVE: ${{ secrets.JOOBLE_CHAVE }}
         run: java -jar target/buscador-vagas.jar config.json
 
       - name: Salvar relatório no repositório
